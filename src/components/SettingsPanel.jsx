@@ -5,6 +5,13 @@ import { useSettings } from '../context/SettingsContext'
 const ADMIN_USER = 'admin'
 const ADMIN_PASS = 'bitzen@1987Admin'
 
+const SOCIAL_LABELS = {
+  instagram: 'Instagram',
+  linkedin: 'LinkedIn',
+  twitter: 'Twitter / X',
+  github: 'GitHub',
+}
+
 const emptyApp = { name: '', description: '', logo: '', buyUrl: '', badge: 'Web App' }
 const emptyPost = { title: '', date: new Date().toISOString().slice(0, 10), excerpt: '' }
 
@@ -208,7 +215,7 @@ function LoginForm({ onSuccess }) {
 // ── Painel principal ────────────────────────────────────────────────────────
 
 export default function SettingsPanel() {
-  const { logo, setLogo, apps, setApps, blogPosts, setBlogPosts } = useSettings()
+  const { logo, setLogo, apps, setApps, blogPosts, setBlogPosts, contactEmail, setContactEmail, socialLinks, setSocialLinks } = useSettings()
 
   const [open, setOpen] = useState(false)
   const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem('bitzen_auth') === '1')
@@ -247,15 +254,15 @@ export default function SettingsPanel() {
 
   return (
     <>
-      {/* Botão flutuante */}
+      {/* Botão flutuante — canto superior direito */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-surface border border-border text-gray-400 hover:text-white hover:border-accent-purple/60 shadow-xl shadow-black/40 transition-all duration-200 flex items-center justify-center group"
+        className="fixed top-2 right-4 z-[60] w-10 h-10 rounded-full bg-surface border border-border text-gray-400 hover:text-white hover:border-accent-purple/60 shadow-lg shadow-black/30 transition-all duration-200 flex items-center justify-center group"
         aria-label="Configurações"
         title="Configurações do site"
       >
         <span className="group-hover:rotate-45 transition-transform duration-300 block">
-          <IconSettings />
+          <IconSettings className="w-4 h-4" />
         </span>
       </button>
 
@@ -327,6 +334,43 @@ export default function SettingsPanel() {
                   <AddButton onClick={() => { setAddingApp(true); setEditingAppId(null) }} label="Adicionar App" />
                 )}
               </div>
+            </div>
+
+            <div className="border-t border-border" />
+
+            {/* Email de contato */}
+            <div>
+              <SectionTitle>Email de Contato</SectionTitle>
+              <input
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="contato@suaempresa.com"
+                className="w-full bg-background border border-border rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors"
+              />
+              <p className="text-gray-600 text-xs mt-2">Aparece na seção de contato e no link de email.</p>
+            </div>
+
+            <div className="border-t border-border" />
+
+            {/* Redes sociais */}
+            <div>
+              <SectionTitle>Redes Sociais</SectionTitle>
+              <div className="flex flex-col gap-3">
+                {Object.entries(SOCIAL_LABELS).map(([key, label]) => (
+                  <div key={key}>
+                    <label className="block text-gray-400 text-xs font-medium mb-1.5">{label}</label>
+                    <input
+                      type="url"
+                      value={socialLinks[key] || ''}
+                      onChange={(e) => setSocialLinks((prev) => ({ ...prev, [key]: e.target.value }))}
+                      placeholder={`https://${key}.com/suapagina`}
+                      className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors"
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="text-gray-600 text-xs mt-2">Deixe em branco para ocultar o ícone no rodapé.</p>
             </div>
 
             <div className="border-t border-border" />
