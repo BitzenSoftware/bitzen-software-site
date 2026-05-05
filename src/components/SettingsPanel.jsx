@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useSettings } from '../context/SettingsContext'
+import { supabase } from '../lib/supabase'
 
-// Altere aqui o usuário e senha do painel
 const ADMIN_USER = 'admin'
 const ADMIN_PASS = 'bitzen@1987Admin'
 
@@ -15,7 +15,7 @@ const SOCIAL_LABELS = {
 const emptyApp = { name: '', description: '', logo: '', buyUrl: '', badge: 'Web App' }
 const emptyPost = { title: '', date: new Date().toISOString().slice(0, 10), excerpt: '' }
 
-// ── Componentes utilitários ─────────────────────────────────────────────────
+// ── Ícone de engrenagem ─────────────────────────────────────────────────────
 
 function IconSettings({ className = 'w-5 h-5' }) {
   return (
@@ -35,22 +35,35 @@ function SectionTitle({ children }) {
   )
 }
 
-function ImageUpload({ value, onChange, label, small }) {
+// ── Upload de imagem via Supabase Storage ───────────────────────────────────
+
+function ImageUpload({ value, onChange, label, small, storageFolder = 'misc' }) {
   const ref = useRef()
-  function handleFile(e) {
+  const [uploading, setUploading] = useState(false)
+
+  async function handleFile(e) {
     const file = e.target.files[0]
     if (!file) return
-    const reader = new FileReader()
-    reader.onload = (ev) => onChange(ev.target.result)
-    reader.readAsDataURL(file)
+    setUploading(true)
+    const ext = file.name.split('.').pop().toLowerCase()
+    const path = `${storageFolder}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('images').upload(path, file, { upsert: true })
+    if (!error) {
+      const { data } = supabase.storage.from('images').getPublicUrl(path)
+      onChange(data.publicUrl)
+    }
+    setUploading(false)
   }
+
   return (
     <div className="flex items-center gap-3">
       <div
-        className={`${small ? 'w-10 h-10' : 'w-20 h-20'} rounded-xl bg-background border border-border flex items-center justify-center overflow-hidden flex-shrink-0 cursor-pointer`}
-        onClick={() => ref.current.click()}
+        className={`${small ? 'w-10 h-10' : 'w-20 h-20'} rounded-xl bg-background border border-border flex items-center justify-center overflow-hidden flex-shrink-0 cursor-pointer relative`}
+        onClick={() => !uploading && ref.current.click()}
       >
-        {value ? (
+        {uploading ? (
+          <div className="w-4 h-4 border-2 border-accent-purple border-t-transparent rounded-full animate-spin" />
+        ) : value ? (
           <img src={value} alt={label} className="w-full h-full object-contain p-1" />
         ) : (
           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,10 +72,10 @@ function ImageUpload({ value, onChange, label, small }) {
         )}
       </div>
       <div className="flex flex-col gap-1">
-        <button type="button" onClick={() => ref.current.click()} className="text-xs text-accent-blue hover:underline text-left">
-          {value ? 'Trocar imagem' : `Selecionar ${label}`}
+        <button type="button" onClick={() => !uploading && ref.current.click()} className="text-xs text-accent-blue hover:underline text-left">
+          {uploading ? 'Enviando...' : value ? 'Trocar imagem' : `Selecionar ${label}`}
         </button>
-        {value && (
+        {value && !uploading && (
           <button type="button" onClick={() => onChange('')} className="text-xs text-red-400 hover:underline text-left">
             Remover
           </button>
@@ -84,7 +97,7 @@ function AppForm({ initial, onSave, onCancel }) {
       className="bg-background border border-accent-purple/30 rounded-xl p-4 flex flex-col gap-3">
       <div>
         <label className="block text-gray-400 text-xs font-medium mb-1.5">Logo do App</label>
-        <ImageUpload small value={form.logo} onChange={(v) => setForm((p) => ({ ...p, logo: v }))} label="logo" />
+        <ImageUpload small value={form.logo} onChange={(v) => setForm((p) => ({ ...p, logo: v }))} label="logo" storageFolder="apps" />
       </div>
       <Field label="Nome do App" name="name" value={form.name} onChange={set} placeholder="Ex: FinanceiroApp" required />
       <Field label="Descrição" name="description" value={form.description} onChange={set} placeholder="Breve descrição..." required textarea />
@@ -111,7 +124,7 @@ function PostForm({ initial, onSave, onCancel }) {
   )
 }
 
-// ── Helpers de formulário ───────────────────────────────────────────────────
+// ── Helpers ─────────────────────────────────────────────────────────────────
 
 function Field({ label, textarea, ...props }) {
   const cls = "w-full bg-surface border border-border rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors"
@@ -167,43 +180,27 @@ function LoginForm({ onSuccess }) {
         </div>
         <h2 className="text-white text-xl font-bold text-center mb-1">Área restrita</h2>
         <p className="text-gray-500 text-sm text-center mb-6">Faça login para acessar as configurações</p>
-
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div>
             <label className="block text-gray-400 text-xs font-medium mb-1.5">Usuário</label>
-            <input
-              type="text"
-              autoComplete="username"
-              required
-              value={form.user}
+            <input type="text" autoComplete="username" required value={form.user}
               onChange={(e) => setForm((p) => ({ ...p, user: e.target.value }))}
               className="w-full bg-background border border-border rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors"
-              placeholder="Digite seu usuário"
-            />
+              placeholder="Digite seu usuário" />
           </div>
           <div>
             <label className="block text-gray-400 text-xs font-medium mb-1.5">Senha</label>
-            <input
-              type="password"
-              autoComplete="current-password"
-              required
-              value={form.pass}
+            <input type="password" autoComplete="current-password" required value={form.pass}
               onChange={(e) => setForm((p) => ({ ...p, pass: e.target.value }))}
               className="w-full bg-background border border-border rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors"
-              placeholder="••••••••"
-            />
+              placeholder="••••••••" />
           </div>
-
           {error && (
             <p className="text-red-400 text-xs text-center bg-red-400/10 border border-red-400/20 rounded-lg py-2">
               Usuário ou senha incorretos
             </p>
           )}
-
-          <button
-            type="submit"
-            className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-accent-purple to-accent-blue hover:opacity-90 transition-opacity mt-1"
-          >
+          <button type="submit" className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-accent-purple to-accent-blue hover:opacity-90 transition-opacity mt-1">
             Entrar
           </button>
         </form>
@@ -220,13 +217,32 @@ export default function SettingsPanel() {
   const [open, setOpen] = useState(false)
   const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem('bitzen_auth') === '1')
 
-  // Apps
   const [addingApp, setAddingApp] = useState(false)
   const [editingAppId, setEditingAppId] = useState(null)
-
-  // Blog
   const [addingPost, setAddingPost] = useState(false)
   const [editingPostId, setEditingPostId] = useState(null)
+
+  const [testimonials, setTestimonials] = useState([])
+
+  useEffect(() => {
+    if (open && authenticated) loadTestimonials()
+  }, [open, authenticated])
+
+  async function loadTestimonials() {
+    const { data } = await supabase.from('testimonials').select('*').order('created_at', { ascending: false })
+    setTestimonials(data || [])
+  }
+
+  async function approveTestimonial(id) {
+    await supabase.from('testimonials').update({ approved: true }).eq('id', id)
+    setTestimonials(p => p.map(t => t.id === id ? { ...t, approved: true } : t))
+  }
+
+  async function deleteTestimonial(id) {
+    if (!window.confirm('Remover este comentário?')) return
+    await supabase.from('testimonials').delete().eq('id', id)
+    setTestimonials(p => p.filter(t => t.id !== id))
+  }
 
   function closePanel() {
     setOpen(false)
@@ -242,19 +258,35 @@ export default function SettingsPanel() {
     closePanel()
   }
 
-  // Apps handlers
-  function handleAddApp(data) { setApps((p) => [...p, { ...data, id: Date.now() }]); setAddingApp(false) }
-  function handleEditApp(data) { setApps((p) => p.map((a) => a.id === editingAppId ? { ...data, id: editingAppId } : a)); setEditingAppId(null) }
-  function handleDeleteApp(id) { if (window.confirm('Remover este app?')) setApps((p) => p.filter((a) => a.id !== id)) }
+  function handleAddApp(data) {
+    setApps([...apps, { ...data, id: Date.now() }])
+    setAddingApp(false)
+  }
+  function handleEditApp(data) {
+    setApps(apps.map((a) => a.id === editingAppId ? { ...data, id: editingAppId } : a))
+    setEditingAppId(null)
+  }
+  function handleDeleteApp(id) {
+    if (window.confirm('Remover este app?')) setApps(apps.filter((a) => a.id !== id))
+  }
 
-  // Blog handlers
-  function handleAddPost(data) { setBlogPosts((p) => [{ ...data, id: Date.now() }, ...p]); setAddingPost(false) }
-  function handleEditPost(data) { setBlogPosts((p) => p.map((x) => x.id === editingPostId ? { ...data, id: editingPostId } : x)); setEditingPostId(null) }
-  function handleDeletePost(id) { if (window.confirm('Remover esta postagem?')) setBlogPosts((p) => p.filter((x) => x.id !== id)) }
+  function handleAddPost(data) {
+    setBlogPosts([{ ...data, id: Date.now() }, ...blogPosts])
+    setAddingPost(false)
+  }
+  function handleEditPost(data) {
+    setBlogPosts(blogPosts.map((x) => x.id === editingPostId ? { ...data, id: editingPostId } : x))
+    setEditingPostId(null)
+  }
+  function handleDeletePost(id) {
+    if (window.confirm('Remover esta postagem?')) setBlogPosts(blogPosts.filter((x) => x.id !== id))
+  }
+
+  const pending = testimonials.filter(t => !t.approved)
+  const approved = testimonials.filter(t => t.approved)
 
   return (
     <>
-      {/* Botão flutuante — canto superior direito */}
       <button
         onClick={() => setOpen(true)}
         className="fixed top-2 right-4 z-[60] w-10 h-10 rounded-full bg-surface border border-border text-gray-400 hover:text-white hover:border-accent-purple/60 shadow-lg shadow-black/30 transition-all duration-200 flex items-center justify-center group"
@@ -266,13 +298,10 @@ export default function SettingsPanel() {
         </span>
       </button>
 
-      {/* Backdrop */}
       {open && <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={closePanel} />}
 
-      {/* Painel lateral */}
       <div className={`fixed top-0 right-0 z-50 h-full w-full max-w-sm bg-surface border-l border-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${open ? 'translate-x-0' : 'translate-x-full'}`}>
 
-        {/* Cabeçalho */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-accent-purple"><IconSettings /></span>
@@ -294,7 +323,6 @@ export default function SettingsPanel() {
           </div>
         </div>
 
-        {/* Conteúdo: login ou painel */}
         {!authenticated ? (
           <LoginForm onSuccess={() => setAuthenticated(true)} />
         ) : (
@@ -303,8 +331,8 @@ export default function SettingsPanel() {
             {/* Logo */}
             <div>
               <SectionTitle>Logo da Empresa</SectionTitle>
-              <ImageUpload value={logo} onChange={setLogo} label="logo da empresa" />
-              <p className="text-gray-600 text-xs mt-2">PNG ou SVG com fundo transparente. Aparece na navbar e no rodapé.</p>
+              <ImageUpload value={logo} onChange={setLogo} label="logo da empresa" storageFolder="logos" />
+              <p className="text-gray-600 text-xs mt-2">PNG ou SVG com fundo transparente.</p>
             </div>
 
             <div className="border-t border-border" />
@@ -338,7 +366,7 @@ export default function SettingsPanel() {
 
             <div className="border-t border-border" />
 
-            {/* Email de contato */}
+            {/* Email */}
             <div>
               <SectionTitle>Email de Contato</SectionTitle>
               <input
@@ -348,7 +376,6 @@ export default function SettingsPanel() {
                 placeholder="contato@suaempresa.com"
                 className="w-full bg-background border border-border rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors"
               />
-              <p className="text-gray-600 text-xs mt-2">Aparece na seção de contato e no link de email.</p>
             </div>
 
             <div className="border-t border-border" />
@@ -363,14 +390,14 @@ export default function SettingsPanel() {
                     <input
                       type="url"
                       value={socialLinks[key] || ''}
-                      onChange={(e) => setSocialLinks((prev) => ({ ...prev, [key]: e.target.value }))}
+                      onChange={(e) => setSocialLinks({ ...socialLinks, [key]: e.target.value })}
                       placeholder={`https://${key}.com/suapagina`}
                       className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors"
                     />
                   </div>
                 ))}
               </div>
-              <p className="text-gray-600 text-xs mt-2">Deixe em branco para ocultar o ícone no rodapé.</p>
+              <p className="text-gray-600 text-xs mt-2">Deixe em branco para ocultar o ícone.</p>
             </div>
 
             <div className="border-t border-border" />
@@ -399,13 +426,66 @@ export default function SettingsPanel() {
                 )}
               </div>
             </div>
+
+            <div className="border-t border-border" />
+
+            {/* Testemunhos */}
+            <div>
+              <SectionTitle>Comentários ({testimonials.length})</SectionTitle>
+
+              {pending.length > 0 && (
+                <div className="mb-3">
+                  <p className="text-xs text-yellow-500 font-medium mb-2">Aguardando aprovação ({pending.length})</p>
+                  <div className="flex flex-col gap-2">
+                    {pending.map(t => (
+                      <div key={t.id} className="bg-background border border-yellow-500/20 rounded-xl px-3 py-2.5">
+                        <p className="text-white text-sm font-medium">{t.name}</p>
+                        <p className="text-gray-500 text-xs mt-0.5 line-clamp-2">{t.message}</p>
+                        <div className="flex gap-2 mt-2">
+                          <button onClick={() => approveTestimonial(t.id)}
+                            className="text-xs text-green-400 hover:underline">Aprovar</button>
+                          <button onClick={() => deleteTestimonial(t.id)}
+                            className="text-xs text-red-400 hover:underline">Remover</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {approved.length > 0 && (
+                <div>
+                  <p className="text-xs text-green-500 font-medium mb-2">Publicados ({approved.length})</p>
+                  <div className="flex flex-col gap-2">
+                    {approved.map(t => (
+                      <div key={t.id} className="flex items-center gap-3 bg-background border border-border rounded-xl px-3 py-2.5">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-sm font-medium truncate">{t.name}</p>
+                          <p className="text-gray-500 text-xs truncate">{t.message}</p>
+                        </div>
+                        <button onClick={() => deleteTestimonial(t.id)}
+                          className="p-1.5 text-gray-500 hover:text-red-400 transition-colors rounded-lg hover:bg-surface flex-shrink-0">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {testimonials.length === 0 && (
+                <p className="text-gray-600 text-xs">Ainda sem comentários de visitantes.</p>
+              )}
+            </div>
+
           </div>
         )}
 
-        {/* Rodapé */}
         <div className="px-5 py-3 border-t border-border flex-shrink-0">
           <p className="text-gray-600 text-xs text-center">
-            {authenticated ? 'As alterações são salvas automaticamente' : 'Bitzen Software — Painel administrativo'}
+            {authenticated ? 'As alterações são salvas no Supabase' : 'Bitzen Software — Painel administrativo'}
           </p>
         </div>
       </div>
@@ -413,7 +493,7 @@ export default function SettingsPanel() {
   )
 }
 
-// ── Sub-componentes reutilizáveis ───────────────────────────────────────────
+// ── Sub-componentes ─────────────────────────────────────────────────────────
 
 function ItemRow({ logo, initial, title, subtitle, onEdit, onDelete }) {
   return (
@@ -449,10 +529,8 @@ function ItemRow({ logo, initial, title, subtitle, onEdit, onDelete }) {
 
 function AddButton({ onClick, label }) {
   return (
-    <button
-      onClick={onClick}
-      className="w-full py-3 rounded-xl text-sm font-medium text-gray-500 border border-dashed border-border hover:border-accent-purple/50 hover:text-accent-purple transition-all duration-200 flex items-center justify-center gap-2 mt-1"
-    >
+    <button onClick={onClick}
+      className="w-full py-3 rounded-xl text-sm font-medium text-gray-500 border border-dashed border-border hover:border-accent-purple/50 hover:text-accent-purple transition-all duration-200 flex items-center justify-center gap-2 mt-1">
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
       </svg>
