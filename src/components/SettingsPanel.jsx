@@ -40,17 +40,25 @@ function SectionTitle({ children }) {
 function ImageUpload({ value, onChange, label, small, storageFolder = 'misc' }) {
   const ref = useRef()
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
 
   async function handleFile(e) {
     const file = e.target.files[0]
     if (!file) return
     setUploading(true)
+    setUploadError('')
     const ext = file.name.split('.').pop().toLowerCase()
     const path = `${storageFolder}/${Date.now()}.${ext}`
     const { error } = await supabase.storage.from('images').upload(path, file, { upsert: true })
     if (!error) {
       const { data } = supabase.storage.from('images').getPublicUrl(path)
       onChange(data.publicUrl)
+    } else {
+      // Fallback: usar base64 se storage falhar
+      const reader = new FileReader()
+      reader.onload = (ev) => onChange(ev.target.result)
+      reader.readAsDataURL(file)
+      setUploadError('Storage indisponível — usando base64')
     }
     setUploading(false)
   }
@@ -80,6 +88,7 @@ function ImageUpload({ value, onChange, label, small, storageFolder = 'misc' }) 
             Remover
           </button>
         )}
+        {uploadError && <p className="text-xs text-yellow-500">{uploadError}</p>}
       </div>
       <input ref={ref} type="file" accept="image/*" className="hidden" onChange={handleFile} />
     </div>
