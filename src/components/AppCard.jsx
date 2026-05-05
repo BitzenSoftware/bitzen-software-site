@@ -6,7 +6,7 @@ export default function AppCard({ app }) {
           <img
             src={app.logo}
             alt={`Logo ${app.name}`}
-            className="w-full h-full object-contain p-2"
+            className="w-full h-full object-cover"
             onError={(e) => {
               e.target.style.display = 'none'
               e.target.parentElement.innerHTML = `<span class="text-2xl font-bold text-accent-purple">${app.name.charAt(0)}</span>`
