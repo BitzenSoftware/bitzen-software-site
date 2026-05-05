@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\Loja\\\\Desktop\\\\Projeto Github\" -Recurse -Force | Select-Object FullName, @{Name='Type';Expression={if\\($_.PSIsContainer\\){'Folder'}else{'File'}}}, @{Name='Extension';Expression={if\\($_.PSIsContainer\\){'-'}else{$_.Extension}}} | Sort-Object FullName)",
+      "Bash(npm install *)"
+    ]
+  }
+}
