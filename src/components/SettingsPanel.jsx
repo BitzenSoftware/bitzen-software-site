@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSettings } from '../context/SettingsContext'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseInfo } from '../lib/supabase'
 
 const ADMIN_USER = 'admin'
 const ADMIN_PASS = 'bitzen@1987Admin'
@@ -345,9 +345,12 @@ export default function SettingsPanel() {
           </div>
         )}
         {authenticated && !dbError && !loading && (
-          <div className="mx-5 mt-3 bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-2 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-400" />
-            <p className="text-green-400 text-xs">Supabase conectado — dados guardados na nuvem</p>
+          <div className="mx-5 mt-3 bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-2 flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-400" />
+              <p className="text-green-400 text-xs">Supabase conectado — dados guardados na nuvem</p>
+            </div>
+            <p className="text-gray-600 text-xs font-mono">chave: {supabaseInfo.keyPrefix}… ({supabaseInfo.keyLength} chars)</p>
           </div>
         )}
 
