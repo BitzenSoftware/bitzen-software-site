@@ -4,6 +4,7 @@ import Hero from './components/Hero'
 import AppsSection from './components/AppsSection'
 import About from './components/About'
 import Blog from './components/Blog'
+import EbooksSection from './components/EbooksSection'
 import Testimonials from './components/Testimonials'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
@@ -19,6 +20,7 @@ export default function App() {
           <AppsSection />
           <About />
           <Blog />
+          <EbooksSection />
           <Testimonials />
           <Contact />
         </main>
