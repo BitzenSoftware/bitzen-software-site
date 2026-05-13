@@ -247,6 +247,11 @@ export default function SettingsPanel() {
   const [addingPost, setAddingPost] = useState(false)
   const [editingPostId, setEditingPostId] = useState(null)
   const [testimonials, setTestimonials] = useState([])
+  const [linkedinPosts, setLinkedinPosts] = useState([])
+  const [statsFrom, setStatsFrom] = useState('')
+  const [statsTo, setStatsTo] = useState('')
+  const [loadingStats, setLoadingStats] = useState(false)
+  const [statsFetched, setStatsFetched] = useState(false)
 
   useEffect(() => {
     if (open && authenticated) {
@@ -278,6 +283,19 @@ export default function SettingsPanel() {
 
   function removeLinkedinGroup(id) {
     saveLinkedinGroups(linkedinGroups.filter(g => g.id !== id))
+  }
+
+  async function loadLinkedinStats(from, to) {
+    setLoadingStats(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('linkedin-stats', {
+        body: { from: from || undefined, to: to || undefined },
+      })
+      if (!error && data?.posts) setLinkedinPosts(data.posts)
+    } finally {
+      setLoadingStats(false)
+      setStatsFetched(true)
+    }
   }
 
   async function loadTestimonials() {
@@ -331,6 +349,7 @@ export default function SettingsPanel() {
     { id: 'apps', label: 'Produtos', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
     { id: 'agents', label: 'Agentes IA', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H4a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-1" /></svg> },
     { id: 'blog', label: 'Blog', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg> },
+    { id: 'linkedin', label: 'Publicações', icon: <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg> },
     { id: 'comments', label: 'Comentários', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> },
     { id: 'config', label: 'Configurações', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
   ]
@@ -572,6 +591,130 @@ export default function SettingsPanel() {
                       <AddButton onClick={() => { setAddingPost(true); setEditingPostId(null) }} label="Adicionar Postagem" />
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Publicações LinkedIn */}
+              {section === 'linkedin' && (
+                <div className="p-6 max-w-4xl">
+                  {/* Date filter */}
+                  <div className="bg-surface border border-border rounded-2xl p-5 mb-6">
+                    <h3 className="text-white text-sm font-semibold mb-4">Filtro por período</h3>
+                    <div className="flex flex-wrap items-end gap-3">
+                      <div>
+                        <label className="block text-gray-400 text-xs font-medium mb-1.5">De</label>
+                        <input
+                          type="date"
+                          value={statsFrom}
+                          onChange={e => setStatsFrom(e.target.value)}
+                          className="bg-background border border-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-accent-purple/60 transition-colors"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-400 text-xs font-medium mb-1.5">Até</label>
+                        <input
+                          type="date"
+                          value={statsTo}
+                          onChange={e => setStatsTo(e.target.value)}
+                          className="bg-background border border-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-accent-purple/60 transition-colors"
+                        />
+                      </div>
+                      <button
+                        onClick={() => loadLinkedinStats(statsFrom, statsTo)}
+                        disabled={loadingStats}
+                        className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#0077B5] hover:bg-[#006097] transition-colors disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {loadingStats && <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />}
+                        {loadingStats ? 'Buscando...' : 'Buscar'}
+                      </button>
+                      {!statsFetched && (
+                        <button
+                          onClick={() => loadLinkedinStats('', '')}
+                          disabled={loadingStats}
+                          className="px-4 py-2.5 rounded-xl text-sm text-gray-400 border border-border hover:text-white hover:border-accent-purple/40 transition-colors"
+                        >
+                          Ver todos
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Posts table */}
+                  {statsFetched && (
+                    linkedinPosts.length === 0 ? (
+                      <div className="text-center py-16 text-gray-600">
+                        <svg className="w-10 h-10 mx-auto mb-3 opacity-30" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
+                        <p className="text-sm">Nenhuma publicação encontrada no período</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-3">
+                        {/* Summary row */}
+                        <div className="grid grid-cols-3 gap-3 mb-2">
+                          {[
+                            { label: 'Total de posts', value: linkedinPosts.length, icon: '📄' },
+                            { label: 'Total de likes', value: linkedinPosts.reduce((s, p) => s + (p.likes || 0), 0), icon: '👍' },
+                            { label: 'Total de comentários', value: linkedinPosts.reduce((s, p) => s + (p.comments || 0), 0), icon: '💬' },
+                          ].map(stat => (
+                            <div key={stat.label} className="bg-surface border border-border rounded-xl p-4 text-center">
+                              <p className="text-2xl mb-1">{stat.icon}</p>
+                              <p className="text-white font-bold text-xl">{stat.value}</p>
+                              <p className="text-gray-500 text-xs mt-0.5">{stat.label}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Post rows */}
+                        {linkedinPosts.map(post => {
+                          const agent = AGENT_LIST.find(a => a.id === post.agent_id)
+                          const date = post.published_at
+                            ? new Date(post.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+                            : '—'
+                          return (
+                            <div key={post.id} className="bg-surface border border-border rounded-xl p-4 flex flex-col gap-2">
+                              <div className="flex items-start gap-3">
+                                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${agent?.color ?? 'from-gray-600 to-gray-500'} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                                  <span className="text-white text-xs font-bold">{(agent?.name ?? post.agent_id ?? '?').charAt(0)}</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-white text-sm leading-relaxed line-clamp-2">{post.text_preview}</p>
+                                  <div className="flex flex-wrap items-center gap-3 mt-2">
+                                    <span className="text-gray-500 text-xs">{date}</span>
+                                    {post.destination && (
+                                      <span className="text-xs bg-[#0077B5]/15 text-[#0ea5e9] px-2 py-0.5 rounded-full">
+                                        {post.destination === 'feed' ? 'Feed pessoal' : post.destination}
+                                      </span>
+                                    )}
+                                    {agent && (
+                                      <span className="text-xs text-gray-600">{agent.name}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex gap-4 pt-1 border-t border-border/60">
+                                <div className="flex items-center gap-1.5 text-gray-500 text-xs">
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                                  <span>{post.likes ?? 0} likes</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-gray-500 text-xs">
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                                  <span>{post.comments ?? 0} comentários</span>
+                                </div>
+                                {(post.likes === 0 && post.comments === 0) && (
+                                  <span className="text-gray-700 text-xs ml-auto">stats não disponíveis — requer r_member_social</span>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  )}
+
+                  {!statsFetched && !loadingStats && (
+                    <div className="text-center py-16 text-gray-600">
+                      <p className="text-sm">Selecione um período e clique em Buscar, ou clique em "Ver todos".</p>
+                    </div>
+                  )}
                 </div>
               )}
 
