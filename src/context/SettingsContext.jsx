@@ -17,6 +17,7 @@ export function SettingsProvider({ children }) {
   const [logo, _setLogo] = useState('')
   const [apps, _setApps] = useState([])
   const [blogPosts, _setBlogPosts] = useState([])
+  const [ebooks, _setEbooks] = useState([])
   const [contactEmail, _setContactEmail] = useState(DEFAULT_EMAIL)
   const [socialLinks, _setSocialLinks] = useState(DEFAULT_SOCIAL)
 
@@ -30,10 +31,12 @@ export function SettingsProvider({ children }) {
         { data: settingsData, error: e1 },
         { data: appsData, error: e2 },
         { data: postsData, error: e3 },
+        { data: ebooksData, error: e4 },
       ] = await Promise.all([
         supabase.from('settings').select('*'),
         supabase.from('apps').select('*').order('sort_order'),
         supabase.from('blog_posts').select('*').order('created_at', { ascending: false }),
+        supabase.from('ebooks').select('*').order('sort_order'),
       ])
 
       if (e1 || e2 || e3) {
@@ -67,6 +70,18 @@ export function SettingsProvider({ children }) {
           date: p.date || '',
           excerpt: p.excerpt || '',
           slug: p.slug || '',
+        })))
+      }
+
+      if (ebooksData?.length) {
+        _setEbooks(ebooksData.map(e => ({
+          id: e.id,
+          title: e.title,
+          description: e.description || '',
+          price: e.price || '',
+          platform: e.platform || 'hotmart',
+          buyUrl: e.buy_url || '',
+          cover: e.cover || '',
         })))
       }
     } catch (err) {
@@ -149,12 +164,42 @@ export function SettingsProvider({ children }) {
     }
   }
 
+  async function setEbooks(newEbooks) {
+    _setEbooks(newEbooks)
+    const { data: current, error: fetchErr } = await supabase.from('ebooks').select('id')
+    if (fetchErr) { setDbError(`Erro ao ler ebooks: ${fetchErr.message}`); return }
+
+    const currentIds = (current || []).map(e => e.id)
+    const newIds = newEbooks.map(e => String(e.id))
+    const toDelete = currentIds.filter(id => !newIds.includes(id))
+
+    if (newEbooks.length > 0) {
+      const { error: upsertErr } = await supabase.from('ebooks').upsert(
+        newEbooks.map((e, i) => ({
+          id: String(e.id),
+          title: e.title,
+          description: e.description || '',
+          price: e.price || '',
+          platform: e.platform || 'hotmart',
+          buy_url: e.buyUrl || '',
+          cover: e.cover || '',
+          sort_order: i,
+        }))
+      )
+      if (upsertErr) { setDbError(`Erro ao salvar ebooks: ${upsertErr.message}`); return }
+    }
+    if (toDelete.length > 0) {
+      await supabase.from('ebooks').delete().in('id', toDelete)
+    }
+  }
+
   return (
     <SettingsContext.Provider value={{
       loading, dbError, setDbError,
       logo, setLogo,
       apps, setApps,
       blogPosts, setBlogPosts,
+      ebooks, setEbooks,
       contactEmail, setContactEmail,
       socialLinks, setSocialLinks,
     }}>
