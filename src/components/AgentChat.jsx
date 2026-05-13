@@ -95,7 +95,7 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
       const groupId = dest.startsWith('group:') ? dest.slice(6) : null
       try {
         const { error } = await supabase.functions.invoke('linkedin-post', {
-          body: { text: publishModal.text, groupId: groupId || null },
+          body: { text: publishModal.text, groupId: groupId || null, agentId },
         })
         if (error) throw new Error(error.message)
       } catch (e) {
