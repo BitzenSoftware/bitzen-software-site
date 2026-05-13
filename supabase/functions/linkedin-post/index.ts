@@ -36,25 +36,26 @@ Deno.serve(async (req) => {
 
     const { access_token } = await tokenRes.json()
 
-    // Post to LinkedIn
-    const postRes = await fetch('https://api.linkedin.com/rest/posts', {
+    // Post to LinkedIn via UGC Posts API v2
+    const postRes = await fetch('https://api.linkedin.com/v2/ugcPosts', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${access_token}`,
         'Content-Type': 'application/json',
-        'LinkedIn-Version': '202401',
+        'X-Restli-Protocol-Version': '2.0.0',
       },
       body: JSON.stringify({
         author: `urn:li:person:${personId}`,
-        commentary: text,
-        visibility: 'PUBLIC',
-        distribution: {
-          feedDistribution: 'MAIN_FEED',
-          targetEntities: [],
-          thirdPartyDistributionChannels: [],
-        },
         lifecycleState: 'PUBLISHED',
-        isReshareDisabledByAuthor: false,
+        specificContent: {
+          'com.linkedin.ugc.ShareContent': {
+            shareCommentary: { text },
+            shareMediaCategory: 'NONE',
+          },
+        },
+        visibility: {
+          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC',
+        },
       }),
     })
 
