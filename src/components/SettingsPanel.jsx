@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSettings } from '../context/SettingsContext'
 import { supabase } from '../lib/supabase'
+import AgentChat from './AgentChat'
 
 const ADMIN_USER = 'admin'
 const ADMIN_PASS = 'bitzen@1987Admin'
@@ -226,6 +227,7 @@ export default function SettingsPanel() {
   const [open, setOpen] = useState(false)
   const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem('bitzen_auth') === '1')
 
+  const [agentChatId, setAgentChatId] = useState(null)
   const [addingApp, setAddingApp] = useState(false)
   const [editingAppId, setEditingAppId] = useState(null)
   const [addingPost, setAddingPost] = useState(false)
@@ -259,6 +261,7 @@ export default function SettingsPanel() {
     setEditingAppId(null)
     setAddingPost(false)
     setEditingPostId(null)
+    setAgentChatId(null)
   }
 
   function logout() {
@@ -308,6 +311,14 @@ export default function SettingsPanel() {
       </button>
 
       {open && <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={closePanel} />}
+
+      {agentChatId && (
+        <AgentChat
+          agentId={agentChatId}
+          agentLogo={apps.find(a => a.name.toLowerCase().replace(/\s/g, '').startsWith(agentChatId.replace('agendafacil', 'agenda')))?.logo}
+          onClose={() => setAgentChatId(null)}
+        />
+      )}
 
       <div className={`fixed top-0 right-0 z-50 h-full w-full max-w-sm bg-surface border-l border-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${open ? 'translate-x-0' : 'translate-x-full'}`}>
 
@@ -390,6 +401,42 @@ export default function SettingsPanel() {
                   <AddButton onClick={() => { setAddingApp(true); setEditingAppId(null) }} label="Adicionar App" />
                 )}
               </div>
+            </div>
+
+            <div className="border-t border-border" />
+
+            {/* Agentes IA */}
+            <div>
+              <SectionTitle>Agentes IA</SectionTitle>
+              <div className="flex flex-col gap-2">
+                {[
+                  { id: 'agendafacil', name: 'Agenda Fácil', desc: 'Especialista em agendamento', color: 'from-blue-500 to-cyan-400' },
+                  { id: 'clockly', name: 'Clockly', desc: 'Ponto eletrônico e RH', color: 'from-indigo-500 to-purple-600' },
+                  { id: 'ritmowork', name: 'RitmoWork', desc: 'Gestão de projetos', color: 'from-violet-500 to-purple-500' },
+                ].map(agent => {
+                  const appLogo = apps.find(a => a.name.toLowerCase().replace(/\s/g, '').startsWith(agent.id.replace('agendafacil', 'agenda')))?.logo
+                  return (
+                    <div key={agent.id} className="flex items-center gap-3 bg-background border border-border rounded-xl px-3 py-2.5">
+                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${agent.color} flex items-center justify-center flex-shrink-0 overflow-hidden`}>
+                        {appLogo
+                          ? <img src={appLogo} alt={agent.name} className="w-full h-full object-contain p-1" />
+                          : <span className="text-white text-xs font-bold">{agent.name.charAt(0)}</span>}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-medium">{agent.name}</p>
+                        <p className="text-gray-500 text-xs">{agent.desc}</p>
+                      </div>
+                      <button
+                        onClick={() => setAgentChatId(agent.id)}
+                        className={`px-3 py-1.5 bg-gradient-to-r ${agent.color} rounded-lg text-white text-xs font-semibold hover:opacity-90 transition-opacity flex-shrink-0`}
+                      >
+                        Consultar
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+              <p className="text-gray-600 text-xs mt-2">Faça perguntas e exporte planos em PDF.</p>
             </div>
 
             <div className="border-t border-border" />
@@ -566,3 +613,4 @@ function AddButton({ onClick, label }) {
     </button>
   )
 }
+
