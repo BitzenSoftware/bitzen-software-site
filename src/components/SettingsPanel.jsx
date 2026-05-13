@@ -238,6 +238,8 @@ export default function SettingsPanel() {
   const [open, setOpen] = useState(false)
   const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem('bitzen_auth') === '1')
   const [section, setSection] = useState('overview')
+  const [linkedinGroups, setLinkedinGroups] = useState([])
+  const [newGroup, setNewGroup] = useState({ id: '', name: '' })
   const [agentChatId, setAgentChatId] = useState(null)
 
   const [addingApp, setAddingApp] = useState(false)
@@ -247,8 +249,36 @@ export default function SettingsPanel() {
   const [testimonials, setTestimonials] = useState([])
 
   useEffect(() => {
-    if (open && authenticated) loadTestimonials()
+    if (open && authenticated) {
+      loadTestimonials()
+      loadLinkedinGroups()
+    }
   }, [open, authenticated])
+
+  async function loadLinkedinGroups() {
+    const { data } = await supabase.from('settings').select('value').eq('key', 'linkedin_groups').maybeSingle()
+    if (data?.value) { try { setLinkedinGroups(JSON.parse(data.value)) } catch {} }
+  }
+
+  async function saveLinkedinGroups(groups) {
+    setLinkedinGroups(groups)
+    const val = JSON.stringify(groups)
+    const { data } = await supabase.from('settings').select('id').eq('key', 'linkedin_groups').maybeSingle()
+    if (data) await supabase.from('settings').update({ value: val }).eq('key', 'linkedin_groups')
+    else await supabase.from('settings').insert({ key: 'linkedin_groups', value: val })
+  }
+
+  function addLinkedinGroup() {
+    const id = newGroup.id.trim().replace(/\D/g, '')
+    const name = newGroup.name.trim()
+    if (!id || !name) return
+    saveLinkedinGroups([...linkedinGroups, { id, name }])
+    setNewGroup({ id: '', name: '' })
+  }
+
+  function removeLinkedinGroup(id) {
+    saveLinkedinGroups(linkedinGroups.filter(g => g.id !== id))
+  }
 
   async function loadTestimonials() {
     const { data } = await supabase.from('testimonials').select('*').order('created_at', { ascending: false })
@@ -610,6 +640,47 @@ export default function SettingsPanel() {
                       className="w-full bg-background border border-border rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors"
                     />
                   </div>
+                  <div className="border-t border-border" />
+
+                  {/* LinkedIn Groups */}
+                  <div>
+                    <h3 className="text-white text-sm font-semibold mb-1">Grupos LinkedIn</h3>
+                    <p className="text-gray-600 text-xs mb-3">
+                      Encontre o ID do grupo na URL: linkedin.com/groups/<span className="text-accent-purple">ID</span>
+                    </p>
+                    <div className="flex flex-col gap-2 mb-3">
+                      {linkedinGroups.map(g => (
+                        <div key={g.id} className="flex items-center gap-3 bg-background border border-border rounded-xl px-3 py-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-[#0077B5]/20 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-3.5 h-3.5 text-[#0ea5e9]" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white text-sm font-medium truncate">{g.name}</p>
+                            <p className="text-gray-500 text-xs">ID: {g.id}</p>
+                          </div>
+                          <button onClick={() => removeLinkedinGroup(g.id)}
+                            className="p-1.5 text-gray-500 hover:text-red-400 transition-colors rounded-lg">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-background border border-border rounded-xl p-3 flex flex-col gap-2">
+                      <input value={newGroup.name} onChange={e => setNewGroup(p => ({ ...p, name: e.target.value }))}
+                        placeholder="Nome do grupo (ex: SaaS Brasil)"
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors" />
+                      <input value={newGroup.id} onChange={e => setNewGroup(p => ({ ...p, id: e.target.value }))}
+                        placeholder="ID do grupo (só números)"
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors" />
+                      <button onClick={addLinkedinGroup} disabled={!newGroup.id.trim() || !newGroup.name.trim()}
+                        className="w-full py-2 rounded-lg text-sm font-semibold text-white bg-[#0077B5] hover:bg-[#006097] transition-colors disabled:opacity-40">
+                        Adicionar grupo
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="border-t border-border" />
                   <div>
                     <h3 className="text-white text-sm font-semibold mb-3">Redes Sociais</h3>
