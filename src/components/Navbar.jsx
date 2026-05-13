@@ -3,12 +3,13 @@ import { useSettings } from '../context/SettingsContext'
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const { logo } = useSettings()
+  const { logo, ebooks } = useSettings()
 
   const links = [
     { label: 'Apps', href: '#apps' },
     { label: 'Sobre', href: '#sobre' },
     { label: 'Blog', href: '#blog' },
+    ...(ebooks?.length ? [{ label: 'Ebooks', href: '#ebooks' }] : []),
     { label: 'Contato', href: '#contato' },
   ]
 
