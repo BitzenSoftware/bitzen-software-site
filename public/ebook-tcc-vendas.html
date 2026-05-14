@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prontuário TCC na Prática — Guia Completo para Psicólogos</title>
+<meta name="description" content="O guia definitivo para psicólogos que querem registros clínicos estruturados, conformes e que realmente apoiam o tratamento. Templates prontos, LGPD, CFP 09/2024 e muito mais.">
+<link rel="icon" href="https://vinculo.bitzen.app/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde: #7C9E8E;
+    --verde-escuro: #4a7060;
+    --verde-hover: #6a8e7e;
+    --bege: #F5F0E8;
+    --cobre: #C4956A;
+    --cinza-escuro: #1A3340;
+    --cinza: #4B5563;
+    --cinza-claro: #9CA3AF;
+    --branco: #FFFFFF;
+    --fundo: #FAFAF8;
+    --borda: #E8E3DB;
+    --sombra: 0 4px 24px rgba(26,51,64,0.10);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--cinza-escuro);
+    background: var(--branco);
+  }
+
+  a { text-decoration: none; color: inherit; }
+
+  /* ── Utilitários ── */
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  .container-sm { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+  .text-verde { color: var(--verde); }
+  .text-cobre { color: var(--cobre); }
+
+  /* ── Navbar ── */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--borda);
+    padding: 0 24px;
+  }
+
+  .nav-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--cinza-escuro);
+  }
+
+  .nav-logo img { height: 32px; width: 32px; }
+
+  .nav-cta {
+    background: var(--cinza-escuro);
+    color: var(--branco);
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+
+  .nav-cta:hover { background: var(--verde-escuro); }
+
+  /* ── Hero ── */
+  .hero {
+    background: var(--cinza-escuro);
+    padding: 80px 24px 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 60%, rgba(124,158,142,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(196,149,106,0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 64px;
+    align-items: end;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(124,158,142,0.15);
+    border: 1px solid rgba(124,158,142,0.3);
+    color: var(--verde);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 24px;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--verde);
+    flex-shrink: 0;
+  }
+
+  .hero h1 {
+    font-family: 'Lora', serif;
+    font-size: 52px;
+    font-weight: 700;
+    color: var(--bege);
+    line-height: 1.15;
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--verde);
+  }
+
+  .hero-desc {
+    font-size: 18px;
+    color: rgba(245,240,232,0.65);
+    line-height: 1.7;
+    margin-bottom: 36px;
+    font-weight: 300;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 48px;
+  }
+
+  .hero-stat strong {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--bege);
+    font-family: 'Lora', serif;
+  }
+
+  .hero-stat span {
+    font-size: 13px;
+    color: rgba(245,240,232,0.45);
+  }
+
+  .hero-cta-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+
+  .btn-comprar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--verde);
+    color: var(--branco);
+    padding: 18px 36px;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    width: fit-content;
+  }
+
+  .btn-comprar:hover { background: var(--verde-hover); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(124,158,142,0.35); }
+  .btn-comprar:active { transform: translateY(0); }
+
+  .hero-garantia {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(245,240,232,0.4);
+    font-size: 13px;
+  }
+
+  /* Capa do ebook */
+  .hero-book {
+    align-self: end;
+    position: relative;
+  }
+
+  .book-mock {
+    background: var(--cinza-escuro);
+    border: 1px solid rgba(124,158,142,0.3);
+    border-radius: 12px 4px 4px 12px;
+    padding: 40px 32px;
+    box-shadow:
+      8px 8px 0 rgba(196,149,106,0.2),
+      16px 16px 0 rgba(196,149,106,0.1),
+      inset -3px 0 8px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+    min-height: 460px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .book-mock::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to right, rgba(0,0,0,0.4), transparent);
+  }
+
+  .book-mock::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 40%, rgba(124,158,142,0.1) 0%, transparent 60%);
+  }
+
+  .book-symbol {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .book-top { position: relative; z-index: 1; }
+
+  .book-badge-small {
+    display: inline-block;
+    background: rgba(124,158,142,0.2);
+    border: 1px solid rgba(124,158,142,0.3);
+    color: var(--verde);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 100px;
+    margin-bottom: 14px;
+  }
+
+  .book-titulo {
+    font-family: 'Lora', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--bege);
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  .book-titulo span { color: var(--verde); }
+
+  .book-subtitulo {
+    font-size: 11px;
+    color: rgba(245,240,232,0.45);
+    line-height: 1.5;
+  }
+
+  .book-bottom {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid rgba(245,240,232,0.1);
+    padding-top: 16px;
+  }
+
+  .book-autor {
+    font-size: 11px;
+    color: rgba(245,240,232,0.4);
+  }
+
+  .book-autor strong { color: var(--cobre); }
+
+  /* ── Barra de credibilidade ── */
+  .credibilidade {
+    background: var(--bege);
+    border-top: 1px solid var(--borda);
+    border-bottom: 1px solid var(--borda);
+    padding: 20px 24px;
+  }
+
+  .cred-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .cred-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--cinza);
+    font-weight: 500;
+  }
+
+  .cred-icon { color: var(--verde); font-size: 16px; }
+
+  /* ── Seções ── */
+  section { padding: 80px 24px; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--verde-escuro);
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-family: 'Lora', serif;
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--cinza-escuro);
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    margin-bottom: 16px;
+  }
+
+  .section-desc {
+    font-size: 18px;
+    color: var(--cinza-claro);
+    font-weight: 300;
+    line-height: 1.7;
+    margin-bottom: 48px;
+  }
+
+  /* ── Dores ── */
+  .dores { background: #F7F2EB; }
+
+  .dores-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 48px;
+  }
+
+  .dor-card {
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .dor-ico {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .dor-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cinza-escuro);
+    margin-bottom: 10px;
+    font-family: 'Lora', serif;
+  }
+
+  .dor-card p {
+    font-size: 14px;
+    color: var(--cinza);
+    line-height: 1.6;
+  }
+
+  /* ── O que você vai aprender ── */
+  .aprender { background: var(--branco); }
+
+  .aprender-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 48px;
+  }
+
+  .aprender-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 20px;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .aprender-item:hover {
+    border-color: var(--verde);
+    box-shadow: 0 0 0 3px rgba(124,158,142,0.08);
+  }
+
+  .aprender-num {
+    font-family: 'Lora', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: rgba(124,158,142,0.25);
+    line-height: 1;
+    min-width: 36px;
+  }
+
+  .aprender-item h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cinza-escuro);
+    margin-bottom: 6px;
+  }
+
+  .aprender-item p {
+    font-size: 13px;
+    color: var(--cinza-claro);
+    line-height: 1.5;
+  }
+
+  /* ── Sumário visual ── */
+  .sumario-section { background: var(--cinza-escuro); }
+
+  .sumario-section .section-title { color: var(--bege); }
+  .sumario-section .section-desc { color: rgba(245,240,232,0.5); }
+  .sumario-section .section-label { color: var(--verde); }
+
+  .caps-lista { margin-top: 48px; display: flex; flex-direction: column; gap: 2px; }
+
+  .cap-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 24px;
+    border-radius: 10px;
+    border: 1px solid rgba(245,240,232,0.06);
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .cap-row:hover { background: rgba(124,158,142,0.06); border-color: rgba(124,158,142,0.2); }
+
+  .cap-row-num {
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    color: var(--verde);
+    font-weight: 600;
+    min-width: 32px;
+  }
+
+  .cap-row-content { flex: 1; }
+
+  .cap-row-titulo {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--bege);
+    margin-bottom: 3px;
+  }
+
+  .cap-row-desc { font-size: 13px; color: rgba(245,240,232,0.4); }
+
+  .cap-row-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: rgba(124,158,142,0.15);
+    color: var(--verde);
+    border: 1px solid rgba(124,158,142,0.2);
+    flex-shrink: 0;
+  }
+
+  /* ── Para quem é ── */
+  .para-quem { background: var(--fundo); }
+
+  .para-quem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 48px;
+  }
+
+  .pq-box {
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .pq-box.sim { background: rgba(124,158,142,0.08); border: 1px solid rgba(124,158,142,0.2); }
+  .pq-box.nao { background: rgba(196,149,106,0.06); border: 1px solid rgba(196,149,106,0.15); }
+
+  .pq-titulo {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .pq-box.sim .pq-titulo { color: var(--verde-escuro); }
+  .pq-box.nao .pq-titulo { color: #8B5E3C; }
+
+  .pq-lista { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+
+  .pq-lista li {
+    display: flex;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--cinza);
+    line-height: 1.5;
+  }
+
+  .pq-lista li::before { flex-shrink: 0; margin-top: 1px; }
+  .pq-box.sim .pq-lista li::before { content: '✓'; color: var(--verde); font-weight: 700; }
+  .pq-box.nao .pq-lista li::before { content: '✕'; color: var(--cobre); font-weight: 700; }
+
+  /* ── Preço / CTA Principal ── */
+  .preco { background: var(--cinza-escuro); }
+
+  .preco-inner {
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .preco-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(245,240,232,0.12);
+    border-radius: 24px;
+    padding: 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .preco-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 200px; height: 1px;
+    background: linear-gradient(to right, transparent, var(--verde), transparent);
+  }
+
+  .preco-tag {
+    display: inline-block;
+    background: rgba(124,158,142,0.15);
+    border: 1px solid rgba(124,158,142,0.3);
+    color: var(--verde);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+  }
+
+  .preco-de {
+    font-size: 16px;
+    color: rgba(245,240,232,0.3);
+    text-decoration: line-through;
+    margin-bottom: 8px;
+  }
+
+  .preco-valor {
+    font-family: 'Lora', serif;
+    font-size: 68px;
+    font-weight: 700;
+    color: var(--bege);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .preco-valor sup {
+    font-size: 28px;
+    vertical-align: super;
+    font-weight: 600;
+  }
+
+  .preco-nota {
+    font-size: 14px;
+    color: rgba(245,240,232,0.4);
+    margin-bottom: 36px;
+  }
+
+  .preco-lista {
+    list-style: none;
+    text-align: left;
+    margin-bottom: 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .preco-lista li {
+    display: flex;
+    gap: 12px;
+    font-size: 15px;
+    color: rgba(245,240,232,0.7);
+    align-items: flex-start;
+  }
+
+  .preco-lista li span {
+    color: var(--verde);
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .btn-comprar-lg {
+    display: block;
+    width: 100%;
+    background: var(--verde);
+    color: var(--branco);
+    padding: 20px;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    margin-bottom: 16px;
+  }
+
+  .btn-comprar-lg:hover {
+    background: var(--verde-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(124,158,142,0.4);
+  }
+
+  .btn-comprar-lg:active { transform: translateY(0); }
+
+  .preco-seguranca {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    color: rgba(245,240,232,0.35);
+  }
+
+  .preco-garantia {
+    margin-top: 28px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(245,240,232,0.08);
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .garantia-ico {
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+
+  .garantia-texto strong {
+    display: block;
+    font-size: 14px;
+    color: var(--bege);
+    margin-bottom: 4px;
+  }
+
+  .garantia-texto p {
+    font-size: 13px;
+    color: rgba(245,240,232,0.4);
+    line-height: 1.5;
+  }
+
+  /* ── FAQ ── */
+  .faq { background: var(--fundo); }
+
+  .faq-lista {
+    margin-top: 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  details {
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  summary {
+    padding: 20px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--cinza-escuro);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    list-style: none;
+    background: var(--branco);
+    transition: background 0.2s;
+  }
+
+  summary:hover { background: rgba(124,158,142,0.04); }
+
+  summary::after {
+    content: '+';
+    font-size: 20px;
+    color: var(--verde);
+    font-weight: 300;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+
+  details[open] summary::after { transform: rotate(45deg); }
+
+  .faq-resp {
+    padding: 0 24px 20px;
+    font-size: 15px;
+    color: var(--cinza);
+    line-height: 1.7;
+    background: var(--branco);
+  }
+
+  /* ── Footer CTA ── */
+  .footer-cta {
+    background: var(--cinza-escuro);
+    padding: 80px 24px;
+    text-align: center;
+  }
+
+  .footer-cta h2 {
+    font-family: 'Lora', serif;
+    font-size: 40px;
+    color: var(--bege);
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+
+  .footer-cta p {
+    font-size: 18px;
+    color: rgba(245,240,232,0.5);
+    margin-bottom: 40px;
+    font-weight: 300;
+  }
+
+  /* ── Rodapé ── */
+  footer {
+    background: #0F2027;
+    padding: 24px;
+    text-align: center;
+  }
+
+  footer p {
+    font-size: 13px;
+    color: rgba(245,240,232,0.2);
+  }
+
+  footer a { color: var(--verde); }
+
+  /* ── Spinner ── */
+  .btn-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading .spinner { display: block; }
+  .loading .btn-txt { display: none; }
+
+  /* ── Responsivo ── */
+  @media (max-width: 768px) {
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-book { display: none; }
+    .hero h1 { font-size: 36px; }
+    .dores-grid { grid-template-columns: 1fr; }
+    .aprender-grid { grid-template-columns: 1fr; }
+    .para-quem-grid { grid-template-columns: 1fr; }
+    .section-title { font-size: 28px; }
+    .cred-inner { gap: 20px; }
+    .preco-valor { font-size: 52px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="32" height="32">
+        <rect width="64" height="64" rx="14" fill="#0F2027"/>
+        <path d="M14 32 C14 20, 21 13, 32 12 C32 12, 25 17, 25 32 C25 47, 32 52, 32 52 C21 51, 14 44, 14 32Z" fill="#7C9E8E"/>
+        <path d="M50 32 C50 20, 43 13, 32 12 C32 12, 39 17, 39 32 C39 47, 32 52, 32 52 C43 51, 50 44, 50 32Z" fill="#F5F0E8"/>
+        <ellipse cx="32" cy="32" rx="6" ry="6" fill="#C4956A"/>
+      </svg>
+      <span>Vínculo · Bitzen Software</span>
+    </div>
+    <button class="nav-cta btn-comprar-js">Comprar agora — R$&nbsp;47</button>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-badge">Ebook · Guia Completo</div>
+      <h1>Prontuário <em>TCC</em><br>na Prática</h1>
+      <p class="hero-desc">
+        O guia definitivo para psicólogos que querem registros clínicos estruturados, conformes e que realmente apoiam o tratamento — com templates prontos para usar amanhã.
+      </p>
+
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <strong>9</strong>
+          <span>Capítulos</span>
+        </div>
+        <div class="hero-stat">
+          <strong>+40</strong>
+          <span>Páginas</span>
+        </div>
+        <div class="hero-stat">
+          <strong>3</strong>
+          <span>Templates prontos</span>
+        </div>
+      </div>
+
+      <div class="hero-cta-group">
+        <button class="btn-comprar btn-comprar-js">
+          <span class="btn-txt">Quero o ebook — R$ 47</span>
+          <span class="spinner"></span>
+        </button>
+        <div class="hero-garantia">
+          🔒&nbsp; Pagamento seguro via Stripe &nbsp;·&nbsp; PDF imediato após confirmação
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-book">
+      <div class="book-mock">
+        <div class="book-top">
+          <div class="book-symbol">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="52" height="52">
+              <rect width="64" height="64" rx="14" fill="#0F2027"/>
+              <path d="M14 32 C14 20, 21 13, 32 12 C32 12, 25 17, 25 32 C25 47, 32 52, 32 52 C21 51, 14 44, 14 32Z" fill="#7C9E8E"/>
+              <path d="M50 32 C50 20, 43 13, 32 12 C32 12, 39 17, 39 32 C39 47, 32 52, 32 52 C43 51, 50 44, 50 32Z" fill="#F5F0E8"/>
+              <ellipse cx="32" cy="32" rx="6" ry="6" fill="#C4956A"/>
+            </svg>
+          </div>
+          <div class="book-badge-small">Guia Completo · TCC Clínica</div>
+          <div class="book-titulo">Prontuário <span>TCC</span><br>na Prática</div>
+          <div class="book-subtitulo">O guia definitivo para psicólogos que querem registros clínicos estruturados, conformes e que apoiam o tratamento</div>
+        </div>
+        <div class="book-bottom">
+          <div class="book-autor">Publicado por <strong>Vínculo · Bitzen Software</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Credibilidade ── -->
+<div class="credibilidade">
+  <div class="cred-inner">
+    <div class="cred-item"><span class="cred-icon">✓</span> Resolução CFP 09/2024</div>
+    <div class="cred-item"><span class="cred-icon">✓</span> LGPD na prática</div>
+    <div class="cred-item"><span class="cred-icon">✓</span> Templates prontos</div>
+    <div class="cred-item"><span class="cred-icon">✓</span> PDF imediato</div>
+    <div class="cred-item"><span class="cred-icon">✓</span> Sem assinatura</div>
+  </div>
+</div>
+
+<!-- ── Dores ── -->
+<section class="dores">
+  <div class="container">
+    <div class="section-label">O problema</div>
+    <h2 class="section-title">Você reconhece alguma<br>dessas situações?</h2>
+    <div class="dores-grid">
+      <div class="dor-card">
+        <div class="dor-ico">📋</div>
+        <h3>Prontuário genérico que não serve</h3>
+        <p>Você usa fichas genéricas, textos corridos ou planilhas que não capturam o que realmente acontece numa sessão TCC.</p>
+      </div>
+      <div class="dor-card">
+        <div class="dor-ico">⚖️</div>
+        <h3>Medo de não estar em conformidade</h3>
+        <p>Você não tem certeza se o seu prontuário cumpre o que a Resolução CFP 09/2024 e a LGPD exigem — e isso gera ansiedade.</p>
+      </div>
+      <div class="dor-card">
+        <div class="dor-ico">📊</div>
+        <h3>Não consegue mostrar progresso</h3>
+        <p>Quando o paciente diz "não estou melhorando nada", você não tem dados estruturados para mostrar a evolução real do tratamento.</p>
+      </div>
+      <div class="dor-card">
+        <div class="dor-ico">⏱️</div>
+        <h3>Documentação consome tempo demais</h3>
+        <p>O registro pós-sessão é lento, impreciso e cansativo — e acaba sendo feito dias depois, perdendo qualidade.</p>
+      </div>
+      <div class="dor-card">
+        <div class="dor-ico">🔓</div>
+        <h3>Dados em lugares não seguros</h3>
+        <p>Prontuários em papéis avulsos, pastas no computador sem senha, ou planilhas do Google abertas a qualquer pessoa.</p>
+      </div>
+      <div class="dor-card">
+        <div class="dor-ico">🔄</div>
+        <h3>Dificuldade em supervisão</h3>
+        <p>Sem registros estruturados, a supervisão clínica fica superficial — baseada em memória, não em dados reais do caso.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── O que você vai aprender ── -->
+<section class="aprender">
+  <div class="container">
+    <div class="section-label">O conteúdo</div>
+    <h2 class="section-title">Tudo o que você vai dominar</h2>
+    <p class="section-desc">Do entendimento clínico à conformidade legal — um guia completo e prático.</p>
+    <div class="aprender-grid">
+      <div class="aprender-item">
+        <div class="aprender-num">01</div>
+        <div>
+          <h4>Por que o prontuário importa mais do que você pensa</h4>
+          <p>A documentação como ferramenta terapêutica, instrumento legal e recurso de supervisão.</p>
+        </div>
+      </div>
+      <div class="aprender-item">
+        <div class="aprender-num">02</div>
+        <div>
+          <h4>A estrutura completa do prontuário TCC</h4>
+          <p>Os 8 campos essenciais, o que registrar em cada um e o fluxo ideal de preenchimento.</p>
+        </div>
+      </div>
+      <div class="aprender-item">
+        <div class="aprender-num">03</div>
+        <div>
+          <h4>Rastreamento de humor com a escala 0–10</h4>
+          <p>Como calibrar, coletar e interpretar dados de humor para mostrar progresso real ao paciente.</p>
+        </div>
+      </div>
+      <div class="aprender-item">
+        <div class="aprender-num">04</div>
+        <div>
+          <h4>Pensamentos automáticos e distorções cognitivas</h4>
+          <p>As 8 distorções mais comuns, como documentar e como trabalhar cada uma no prontuário.</p>
+        </div>
+      </div>
+      <div class="aprender-item">
+        <div class="aprender-num">05</div>
+        <div>
+          <h4>Documentação de intervenções TCC</h4>
+          <p>Como registrar reestruturação cognitiva, exposição, ativação comportamental e outras técnicas.</p>
+        </div>
+      </div>
+      <div class="aprender-item">
+        <div class="aprender-num">06</div>
+        <div>
+          <h4>Tarefas de casa — prescrição e acompanhamento</h4>
+          <p>Como registrar, acompanhar adesão e manejar clinicamente a não realização das tarefas.</p>
+        </div>
+      </div>
+      <div class="aprender-item">
+        <div class="aprender-num">07</div>
+        <div>
+          <h4>LGPD e CFP 09/2024 na prática</h4>
+          <p>O que a lei exige, como o consentimento informado deve ser estruturado e como se proteger.</p>
+        </div>
+      </div>
+      <div class="aprender-item">
+        <div class="aprender-num">08</div>
+        <div>
+          <h4>3 templates prontos para usar agora</h4>
+          <p>Ficha de anamnese, registro de sessão e relatório trimestral de evolução — prontos para imprimir ou digitalizar.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Sumário ── -->
+<section class="sumario-section">
+  <div class="container-sm">
+    <div class="section-label">Sumário</div>
+    <h2 class="section-title">9 capítulos. Do básico ao avançado.</h2>
+    <p class="section-desc">Conteúdo pensado para psicólogos em qualquer estágio da carreira.</p>
+    <div class="caps-lista">
+      <div class="cap-row">
+        <div class="cap-row-num">01</div>
+        <div class="cap-row-content">
+          <div class="cap-row-titulo">Por que o Prontuário Importa Mais do que Você Pensa</div>
+          <div class="cap-row-desc">A documentação como ferramenta terapêutica, legal e clínica</div>
+        </div>
+        <div class="cap-row-badge">Fundamentos</div>
+      </div>
+      <div class="cap-row">
+        <div class="cap-row-num">02</div>
+        <div class="cap-row-content">
+          <div class="cap-row-titulo">A Estrutura do Prontuário TCC</div>
+          <div class="cap-row-desc">Os oito campos essenciais e o que registrar em cada um</div>
+        </div>
+        <div class="cap-row-badge">Prática</div>
+      </div>
+      <div class="cap-row">
+        <div class="cap-row-num">03</div>
+        <div class="cap-row-content">
+          <div class="cap-row-titulo">Rastreamento de Humor</div>
+          <div class="cap-row-desc">Como usar a escala 0–10 de forma consistente e clinicamente válida</div>
+        </div>
+        <div class="cap-row-badge">Prática</div>
+      </div>
+      <div class="cap-row">
+        <div class="cap-row-num">04</div>
+        <div class="cap-row-content">
+          <div class="cap-row-titulo">Pensamentos Automáticos</div>
+          <div class="cap-row-desc">Identificação, registro e trabalho com distorções cognitivas</div>
+        </div>
+        <div class="cap-row-badge">Clínico</div>
+      </div>
+      <div class="cap-row">
+        <div class="cap-row-num">05</div>
+        <div class="cap-row-content">
+          <div class="cap-row-titulo">Intervenções TCC</div>
+          <div class="cap-row-desc">As principais técnicas e como documentar cada uma</div>
+        </div>
+        <div class="cap-row-badge">Clínico</div>
+      </div>
+      <div class="cap-row">
+        <div class="cap-row-num">06</div>
+        <div class="cap-row-content">
+          <div class="cap-row-titulo">Tarefas de Casa</div>
+          <div class="cap-row-desc">Como prescrever, registrar e acompanhar a adesão</div>
+        </div>
+        <div class="cap-row-badge">Prática</div>
+      </div>
+      <div class="cap-row">
+        <div class="cap-row-num">07</div>
+        <div class="cap-row-content">
+          <div class="cap-row-titulo">LGPD e CFP na Prática</div>
+          <div class="cap-row-desc">O que a Resolução CFP 09/2024 exige e como estar em conformidade</div>
+        </div>
+        <div class="cap-row-badge">Legal</div>
+      </div>
+      <div class="cap-row">
+        <div class="cap-row-num">08</div>
+        <div class="cap-row-content">
+          <div class="cap-row-titulo">Templates Prontos para Usar</div>
+          <div class="cap-row-desc">Anamnese, evolução de sessão e relatório trimestral</div>
+        </div>
+        <div class="cap-row-badge">Templates</div>
+      </div>
+      <div class="cap-row">
+        <div class="cap-row-num">09</div>
+        <div class="cap-row-content">
+          <div class="cap-row-titulo">Digitalização do Prontuário</div>
+          <div class="cap-row-desc">Por que sair do papel (e das planilhas) de vez</div>
+        </div>
+        <div class="cap-row-badge">Digital</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Para quem é ── -->
+<section class="para-quem">
+  <div class="container">
+    <div class="section-label">Público</div>
+    <h2 class="section-title">Este ebook é para você?</h2>
+    <div class="para-quem-grid">
+      <div class="pq-box sim">
+        <div class="pq-titulo">✓ &nbsp;Sim, é para você se...</div>
+        <ul class="pq-lista">
+          <li>Você é psicólogo e pratica TCC (ou quer aprender a documentar melhor)</li>
+          <li>Você usa fichas genéricas, papel ou planilhas e quer melhorar</li>
+          <li>Você tem dúvidas sobre conformidade com CFP 09/2024 e LGPD</li>
+          <li>Você está iniciando no consultório e quer começar do jeito certo</li>
+          <li>Você quer mostrar progresso real para seus pacientes com dados</li>
+          <li>Você participa de supervisão e quer registros mais úteis</li>
+        </ul>
+      </div>
+      <div class="pq-box nao">
+        <div class="pq-titulo">✕ &nbsp;Não é para você se...</div>
+        <ul class="pq-lista">
+          <li>Você já tem um sistema de prontuário digital estruturado e funcional</li>
+          <li>Você busca formação em TCC (este é um guia de documentação, não de técnica clínica)</li>
+          <li>Você é de outra área da saúde (o conteúdo é específico para psicologia e TCC)</li>
+          <li>Você quer um curso com encontros ao vivo e certificado de horas</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Preço ── -->
+<section class="preco" id="comprar">
+  <div class="container">
+    <div class="preco-inner">
+      <div style="text-align:center; margin-bottom: 40px;">
+        <div class="section-label" style="color: var(--verde);">Oferta de lançamento</div>
+        <h2 class="section-title" style="color: var(--bege);">Invista no seu consultório</h2>
+      </div>
+      <div class="preco-card">
+        <div class="preco-tag">Ebook Digital — PDF</div>
+        <div class="preco-de">R$ 97,00</div>
+        <div class="preco-valor"><sup>R$</sup>47</div>
+        <div class="preco-nota">Pagamento único · Acesso vitalício</div>
+
+        <ul class="preco-lista">
+          <li><span>✓</span> Ebook completo em PDF (9 capítulos, +40 páginas)</li>
+          <li><span>✓</span> Template de ficha de anamnese</li>
+          <li><span>✓</span> Template de evolução de sessão TCC</li>
+          <li><span>✓</span> Template de relatório trimestral</li>
+          <li><span>✓</span> Tabela das 8 distorções cognitivas</li>
+          <li><span>✓</span> Guia prático LGPD + CFP 09/2024</li>
+          <li><span>✓</span> Download imediato após pagamento</li>
+          <li><span>✓</span> Atualizações futuras incluídas</li>
+        </ul>
+
+        <button class="btn-comprar-lg btn-comprar-js">
+          <span class="btn-loading">
+            <span class="btn-txt">Comprar agora — R$ 47</span>
+            <span class="spinner"></span>
+          </span>
+        </button>
+
+        <div class="preco-seguranca">
+          🔒&nbsp; Pagamento 100% seguro via Stripe &nbsp;·&nbsp; Cartão, PIX ou boleto
+        </div>
+
+        <div class="preco-garantia">
+          <div class="garantia-ico">🛡️</div>
+          <div class="garantia-texto">
+            <strong>Garantia de 7 dias</strong>
+            <p>Se por qualquer motivo não ficar satisfeito, devolvemos 100% do valor. Sem perguntas, sem burocracia.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section class="faq">
+  <div class="container-sm">
+    <div class="section-label">Dúvidas frequentes</div>
+    <h2 class="section-title">Perguntas & Respostas</h2>
+    <div class="faq-lista">
+      <details>
+        <summary>Como recebo o ebook após o pagamento?</summary>
+        <div class="faq-resp">Imediatamente após a confirmação do pagamento, você será redirecionado para uma página com o link de download do PDF. O link também será enviado para o seu e-mail.</div>
+      </details>
+      <details>
+        <summary>O ebook é atualizado quando a legislação muda?</summary>
+        <div class="faq-resp">Sim. Compradores do ebook recebem todas as atualizações futuras sem custo adicional. Se o CFP publicar novas resoluções, atualizamos o conteúdo e enviamos a nova versão por e-mail.</div>
+      </details>
+      <details>
+        <summary>Preciso ter conhecimento avançado em TCC?</summary>
+        <div class="faq-resp">Não. O ebook é voltado para documentação clínica — não é um curso de TCC. Psicólogos em formação, recém-formados e experientes vão encontrar valor no conteúdo.</div>
+      </details>
+      <details>
+        <summary>O conteúdo vale para psicólogos que atendem online?</summary>
+        <div class="faq-resp">Sim, completamente. O prontuário estruturado é igualmente importante (ou mais) no atendimento online, e todas as exigências de LGPD e CFP se aplicam independentemente da modalidade.</div>
+      </details>
+      <details>
+        <summary>Posso usar os templates para minha equipe/clínica?</summary>
+        <div class="faq-resp">A licença é individual — para uso pessoal e na sua prática clínica. Para uso em equipe ou clínica com múltiplos psicólogos, entre em contato para condições especiais.</div>
+      </details>
+      <details>
+        <summary>Quais formas de pagamento são aceitas?</summary>
+        <div class="faq-resp">Cartão de crédito (parcelamento disponível), débito e PIX — tudo processado com segurança pela Stripe, líder mundial em pagamentos online.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer CTA ── -->
+<div class="footer-cta">
+  <h2>Comece hoje.<br>Documente melhor amanhã.</h2>
+  <p>Templates prontos, conformidade garantida, conteúdo que você vai usar na próxima sessão.</p>
+  <button class="btn-comprar btn-comprar-js">
+    <span class="btn-txt">Quero o ebook — R$ 47</span>
+    <span class="spinner"></span>
+  </button>
+</div>
+
+<!-- ── Rodapé ── -->
+<footer>
+  <p>© 2026 <a href="https://vinculo.bitzen.app/">Vínculo</a> · Bitzen Software · Todos os direitos reservados</p>
+</footer>
+
+<script>
+  // ── Configuração — preencha após criar o produto no Stripe ──
+  const SUPABASE_URL = 'https://xrswyaqeqweznqdqeygf.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhyc3d5YXFlcXdlem5xZHFleWdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5OTc2NTQsImV4cCI6MjA5MzU3MzY1NH0.UElZZu5rJ_eX45P2MnKMzZMth4gvFUcwZh5LwNY7PBE'
+
+  async function checkout() {
+    const btns = document.querySelectorAll('.btn-comprar-js')
+    btns.forEach(b => b.classList.add('loading'))
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/stripe-ebook-checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          success_url: window.location.origin + '/ebook-tcc-sucesso.html',
+          cancel_url: window.location.href,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (data?.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error(data?.error || 'Erro ao criar sessão de pagamento')
+      }
+    } catch (err) {
+      alert('Erro ao processar: ' + err.message)
+      btns.forEach(b => b.classList.remove('loading'))
+    }
+  }
+
+  document.querySelectorAll('.btn-comprar-js').forEach(btn => {
+    btn.addEventListener('click', checkout)
+  })
+</script>
+
+</body>
+</html>
