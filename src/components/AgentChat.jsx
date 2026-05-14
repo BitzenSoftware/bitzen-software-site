@@ -22,9 +22,9 @@ const AGENTS = {
   },
   vinculo: {
     name: 'Vínculo',
-    description: 'Especialista em prontuário eletrônico TCC para psicólogos',
+    description: 'Gestão clínica TCC para psicólogos — prontuário, agenda e financeiro',
     color: 'from-teal-500 to-emerald-400',
-    intro: 'Olá! Sou o especialista em Vínculo. Posso ajudar com estratégias de captação de psicólogos, marketing clínico, conformidade LGPD/CFP e planos de ação. O que precisa?',
+    intro: 'Olá! Sou o especialista em Vínculo — o prontuário que fala a língua da TCC. Posso ajudar com vendas, marketing para psicólogos, estratégias de captação, conteúdo e planos de ação. O que precisa?',
   },
 }
 
