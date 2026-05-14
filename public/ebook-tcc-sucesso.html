@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Download — Prontuário TCC na Prática</title>
+<link rel="icon" href="https://vinculo.bitzen.app/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #1A3340;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    color: #F5F0E8;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(245,240,232,0.12);
+    border-radius: 24px;
+    padding: 56px 48px;
+    max-width: 520px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 200px; height: 1px;
+    background: linear-gradient(to right, transparent, #7C9E8E, transparent);
+  }
+
+  .check-ico {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(124,158,142,0.15);
+    border: 2px solid rgba(124,158,142,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 28px;
+    font-size: 32px;
+  }
+
+  h1 {
+    font-family: 'Lora', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #F5F0E8;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .subtitulo {
+    font-size: 16px;
+    color: rgba(245,240,232,0.55);
+    line-height: 1.6;
+    margin-bottom: 40px;
+  }
+
+  .btn-download {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #7C9E8E;
+    color: #fff;
+    padding: 18px 36px;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-bottom: 16px;
+  }
+
+  .btn-download:hover {
+    background: #6a8e7e;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(124,158,142,0.4);
+  }
+
+  .nota {
+    font-size: 13px;
+    color: rgba(245,240,232,0.3);
+    margin-bottom: 40px;
+  }
+
+  .divisor {
+    height: 1px;
+    background: rgba(245,240,232,0.08);
+    margin: 32px 0;
+  }
+
+  .vinculo-cta {
+    background: rgba(124,158,142,0.08);
+    border: 1px solid rgba(124,158,142,0.2);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: left;
+  }
+
+  .vinculo-cta-titulo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #7C9E8E;
+    margin-bottom: 10px;
+  }
+
+  .vinculo-cta p {
+    font-size: 14px;
+    color: rgba(245,240,232,0.6);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .btn-vinculo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(124,158,142,0.2);
+    color: #7C9E8E;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .btn-vinculo:hover { background: rgba(124,158,142,0.3); }
+
+  .rodape {
+    margin-top: 32px;
+    font-size: 12px;
+    color: rgba(245,240,232,0.2);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="check-ico">✓</div>
+  <h1>Pagamento confirmado!</h1>
+  <p class="subtitulo">Obrigado pela compra. O seu ebook está pronto para download. O link também foi enviado para o seu e-mail.</p>
+
+  <a href="https://xrswyaqeqweznqdqeygf.supabase.co/storage/v1/object/public/ebooks/prontuario-tcc-na-pratica.pdf" class="btn-download" download="Prontuario-TCC-na-Pratica-Vinculo.pdf">
+    ⬇ Baixar o Ebook em PDF
+  </a>
+
+  <p class="nota">Arquivo PDF · ~2 MB · Compatível com todos os leitores</p>
+
+  <div class="divisor"></div>
+
+  <div class="vinculo-cta">
+    <div class="vinculo-cta-titulo">💡 Próximo passo</div>
+    <p>Quer usar o prontuário TCC estruturado diretamente no sistema — sem papel, sem planilha, com LGPD e CFP já integrados? Teste o Vínculo grátis por 14 dias.</p>
+    <a href="https://vinculo.bitzen.app/" class="btn-vinculo">
+      Conhecer o Vínculo →
+    </a>
+  </div>
+</div>
+
+<p class="rodape">Vínculo · Bitzen Software · vinculo.bitzen.app</p>
+
+</body>
+</html>
