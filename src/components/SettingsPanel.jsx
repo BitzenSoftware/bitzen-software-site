@@ -261,6 +261,7 @@ const AGENT_LIST = [
   { id: 'agendafacil', name: 'Agenda Fácil', desc: 'Especialista em agendamento para clínicas', color: 'from-blue-500 to-cyan-400' },
   { id: 'clockly', name: 'Clockly', desc: 'Ponto eletrônico, RH e folha de pagamento', color: 'from-indigo-500 to-purple-600' },
   { id: 'ritmowork', name: 'RitmoWork', desc: 'Gestão de projetos e produtividade', color: 'from-violet-500 to-purple-500' },
+  { id: 'vinculo', name: 'Vínculo', desc: 'Prontuário eletrônico TCC para psicólogos', color: 'from-teal-500 to-emerald-400' },
 ]
 
 export default function SettingsPanel() {
