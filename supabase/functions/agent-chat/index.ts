@@ -3,6 +3,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 const LINKEDIN_INSTRUCTIONS = `
 Quando o utilizador pedir um post para LinkedIn, Instagram, redes sociais ou conteúdo para publicar:
 - Entregue APENAS o texto do post, pronto para publicar, sem explicações antes ou depois
+- NUNCA use formatação markdown: não use **negrito**, *itálico*, __sublinhado__, # títulos ou qualquer símbolo de markdown — o LinkedIn exibe texto puro e os asteriscos aparecerão literalmente
 - Use emojis estratégicos, quebras de linha para legibilidade e hashtags relevantes no final
 - Adapte o tom ao LinkedIn: profissional mas acessível
 - Nunca diga que "não consegue publicar" — o sistema publica automaticamente com um botão
