@@ -9,8 +9,18 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS })
 
   try {
-    const { text, groupId } = await req.json()
-    if (!text?.trim()) return Response.json({ error: 'text is required' }, { status: 400, headers: CORS })
+    const { text: rawText, groupId, agentId } = await req.json()
+    if (!rawText?.trim()) return Response.json({ error: 'text is required' }, { status: 400, headers: CORS })
+
+    // Strip markdown formatting that LinkedIn renders as plain text
+    const text = rawText
+      .replace(/\*\*(.+?)\*\*/g, '$1')   // **bold**
+      .replace(/\*(.+?)\*/g, '$1')        // *italic*
+      .replace(/__(.+?)__/g, '$1')        // __underline__
+      .replace(/_(.+?)_/g, '$1')          // _italic_
+      .replace(/#{1,6}\s+/g, '')          // # headings
+      .replace(/`(.+?)`/g, '$1')          // `code`
+      .trim()
 
     const clientId = Deno.env.get('LINKEDIN_CLIENT_ID')!
     const clientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET')!
@@ -60,7 +70,28 @@ Deno.serve(async (req) => {
     if (!postRes.ok) throw new Error(`LinkedIn post failed (${postRes.status}): ${await postRes.text()}`)
 
     const postId = postRes.headers.get('x-restli-id') || 'unknown'
-    return Response.json({ success: true, postId, destination: groupId ? `group:${groupId}` : 'feed' }, { headers: CORS })
+    const destination = groupId ? `group:${groupId}` : 'feed'
+
+    // Save to Supabase
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    await fetch(`${supabaseUrl}/rest/v1/linkedin_posts`, {
+      method: 'POST',
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({
+        post_id: postId,
+        text_preview: text.slice(0, 300),
+        agent_id: agentId,
+        destination,
+      }),
+    })
+
+    return Response.json({ success: true, postId, destination }, { headers: CORS })
 
   } catch (e) {
     return Response.json(
