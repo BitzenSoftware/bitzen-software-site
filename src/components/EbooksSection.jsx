@@ -3,6 +3,7 @@ import { useSettings } from '../context/SettingsContext'
 const PLATFORM_BADGE = {
   hotmart: { label: 'Hotmart', bg: 'bg-orange-500/15 text-orange-400 border-orange-500/20' },
   kiwify: { label: 'Kiwify', bg: 'bg-green-500/15 text-green-400 border-green-500/20' },
+  direto: { label: 'Venda Direta', bg: 'bg-teal-500/15 text-teal-400 border-teal-500/20' },
 }
 
 export default function EbooksSection() {
