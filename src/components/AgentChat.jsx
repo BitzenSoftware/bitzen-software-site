@@ -20,6 +20,12 @@ const AGENTS = {
     color: 'from-violet-500 to-purple-500',
     intro: 'Olá! Sou o especialista em RitmoWork. Posso ajudar com estratégias vs concorrentes, conteúdo, marketing e planos de ação. O que precisa?',
   },
+  vinculo: {
+    name: 'Vínculo',
+    description: 'Especialista em prontuário eletrônico TCC para psicólogos',
+    color: 'from-teal-500 to-emerald-400',
+    intro: 'Olá! Sou o especialista em Vínculo. Posso ajudar com estratégias de captação de psicólogos, marketing clínico, conformidade LGPD/CFP e planos de ação. O que precisa?',
+  },
 }
 
 const LI_ICON = (
