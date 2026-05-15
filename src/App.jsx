@@ -1,4 +1,5 @@
 import { SettingsProvider } from './context/SettingsContext'
+import { LanguageProvider } from './context/LanguageContext'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import AppsSection from './components/AppsSection'
@@ -12,6 +13,7 @@ import SettingsPanel from './components/SettingsPanel'
 
 export default function App() {
   return (
+    <LanguageProvider>
     <SettingsProvider>
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -28,5 +30,6 @@ export default function App() {
         <SettingsPanel />
       </div>
     </SettingsProvider>
+    </LanguageProvider>
   )
 }
