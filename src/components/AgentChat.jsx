@@ -54,15 +54,19 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
   async function send() {
     const text = input.trim()
     if (!text || loading) return
-    setMessages(prev => [...prev, { role: 'user', content: text }])
+    const next = [...messages, { role: 'user', content: text }]
+    setMessages(next)
     setInput('')
     setLoading(true)
     try {
       const { data, error } = await supabase.functions.invoke('agent-chat', {
-        body: { agentId, message: text, history: messages },
+        body: {
+          product: agentId,
+          messages: next.map(m => ({ role: m.role, content: m.content })),
+        },
       })
       if (error) throw error
-      setMessages(prev => [...prev, { role: 'assistant', content: data.response }])
+      setMessages(prev => [...prev, { role: 'assistant', content: data.content ?? 'Não consegui processar. Tente novamente.' }])
     } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
