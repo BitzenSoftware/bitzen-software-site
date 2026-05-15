@@ -1,4 +1,5 @@
 import { useSettings } from '../context/SettingsContext'
+import { useLanguage } from '../context/LanguageContext'
 
 const SOCIAL_ICONS = {
   instagram: (
@@ -32,6 +33,7 @@ const SOCIAL_LABELS = {
 
 export default function Footer() {
   const { logo, socialLinks } = useSettings()
+  const { t } = useLanguage()
   const year = new Date().getFullYear()
 
   return (
@@ -48,7 +50,7 @@ export default function Footer() {
         </div>
 
         <p className="text-gray-500 text-sm">
-          © {year} Bitzen Software. Todos os direitos reservados.
+          © {year} Bitzen Software. {t('footer_rights')}
         </p>
 
         <div className="flex items-center gap-4">

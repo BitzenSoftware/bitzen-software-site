@@ -57,6 +57,7 @@ export function SettingsProvider({ children }) {
           id: a.id,
           name: a.name,
           description: a.description || '',
+          descriptionEn: a.description_en || '',
           logo: a.logo || '',
           buyUrl: a.buy_url || '',
           badge: a.badge || 'Web App',
@@ -67,9 +68,12 @@ export function SettingsProvider({ children }) {
         _setBlogPosts(postsData.map(p => ({
           id: p.id,
           title: p.title,
+          titleEn: p.title_en || '',
           date: p.date || '',
           excerpt: p.excerpt || '',
+          excerptEn: p.excerpt_en || '',
           slug: p.slug || '',
+          likesCount: p.likes_count || 0,
         })))
       }
 
@@ -124,6 +128,7 @@ export function SettingsProvider({ children }) {
           id: String(a.id),
           name: a.name,
           description: a.description || '',
+          description_en: a.descriptionEn || '',
           logo: a.logo || '',
           buy_url: a.buyUrl || '',
           badge: a.badge || 'Web App',
@@ -152,8 +157,10 @@ export function SettingsProvider({ children }) {
         newPosts.map(p => ({
           id: String(p.id),
           title: p.title,
+          title_en: p.titleEn || '',
           date: p.date || '',
           excerpt: p.excerpt || '',
+          excerpt_en: p.excerptEn || '',
           slug: p.slug || p.title.toLowerCase().replace(/\s+/g, '-'),
         }))
       )

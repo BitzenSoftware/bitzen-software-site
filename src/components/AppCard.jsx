@@ -1,4 +1,9 @@
+import { useLanguage } from '../context/LanguageContext'
+
 export default function AppCard({ app }) {
+  const { lang, t } = useLanguage()
+  const description = (lang === 'en' && app.descriptionEn) ? app.descriptionEn : app.description
+
   return (
     <div className="group relative bg-surface border border-border rounded-2xl p-6 flex flex-col gap-4 hover:border-accent-purple/50 transition-all duration-300 hover:shadow-lg hover:shadow-accent-purple/10">
       <div className="flex items-start gap-4">
@@ -23,7 +28,7 @@ export default function AppCard({ app }) {
         </div>
       </div>
 
-      <p className="text-gray-400 text-sm leading-relaxed flex-1">{app.description}</p>
+      <p className="text-gray-400 text-sm leading-relaxed flex-1">{description}</p>
 
       <a
         href={app.buyUrl}
@@ -31,7 +36,7 @@ export default function AppCard({ app }) {
         rel="noopener noreferrer"
         className="w-full text-center px-4 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-accent-purple to-accent-blue hover:opacity-90 transition-opacity duration-200 mt-auto"
       >
-        Comprar / Saber mais →
+        {t('app_card_btn')}
       </a>
     </div>
   )

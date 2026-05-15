@@ -1,20 +1,12 @@
+import { useLanguage } from '../context/LanguageContext'
+
 export default function About() {
+  const { t } = useLanguage()
+
   const values = [
-    {
-      icon: '⚡',
-      title: 'Performance',
-      description: 'Apps rápidos, leves e otimizados para a melhor experiência do usuário.',
-    },
-    {
-      icon: '🔒',
-      title: 'Segurança',
-      description: 'Desenvolvemos com as melhores práticas de segurança e privacidade.',
-    },
-    {
-      icon: '🎯',
-      title: 'Foco no usuário',
-      description: 'Interfaces intuitivas, projetadas para facilitar o dia a dia de quem usa.',
-    },
+    { icon: '⚡', title: t('about_v1_title'), description: t('about_v1_desc') },
+    { icon: '🔒', title: t('about_v2_title'), description: t('about_v2_desc') },
+    { icon: '🎯', title: t('about_v3_title'), description: t('about_v3_desc') },
   ]
 
   return (
@@ -23,19 +15,14 @@ export default function About() {
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div>
             <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
-              Sobre a{' '}
+              {t('about_pre')}{' '}
               <span className="bg-gradient-to-r from-accent-purple to-accent-blue bg-clip-text text-transparent">
-                Bitzen Software
+                {t('about_accent')}
               </span>
+              {t('about_post') && ` ${t('about_post')}`}
             </h2>
-            <p className="text-gray-400 text-lg leading-relaxed mb-6">
-              A Bitzen Software é uma empresa dedicada ao desenvolvimento de aplicações web inovadoras.
-              Nosso objetivo é criar ferramentas que realmente fazem a diferença na rotina de empresas e profissionais.
-            </p>
-            <p className="text-gray-400 text-lg leading-relaxed">
-              Com foco em qualidade, performance e usabilidade, entregamos soluções que combinam tecnologia
-              de ponta com uma experiência de uso impecável.
-            </p>
+            <p className="text-gray-400 text-lg leading-relaxed mb-6">{t('about_p1')}</p>
+            <p className="text-gray-400 text-lg leading-relaxed">{t('about_p2')}</p>
           </div>
 
           <div className="flex flex-col gap-6">
