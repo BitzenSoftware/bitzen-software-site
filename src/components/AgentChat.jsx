@@ -77,8 +77,23 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
     }
   }
 
+  function stripMarkdown(text) {
+    return text
+      .replace(/^#{1,6}\s+/gm, '')          // remove headings
+      .replace(/\*\*(.*?)\*\*/gs, '$1')      // remove **bold**
+      .replace(/\*(.*?)\*/gs, '$1')          // remove *italic*
+      .replace(/_(.*?)_/gs, '$1')            // remove _italic_
+      .replace(/`([^`]+)`/g, '$1')           // remove `code`
+      .replace(/^[-*+]\s+/gm, '• ')         // bullet → •
+      .replace(/^\d+\.\s+/gm, '')           // remove numbered list markers
+      .replace(/^>\s+/gm, '')               // remove blockquotes
+      .replace(/^[-*_]{3,}\s*$/gm, '')      // remove horizontal rules
+      .replace(/\n{3,}/g, '\n\n')           // collapse excess blank lines
+      .trim()
+  }
+
   async function openPublishModal(text, msgIndex) {
-    setPublishModal({ text, msgIndex })
+    setPublishModal({ text: stripMarkdown(text), msgIndex })
     setSelectedDests(['feed'])
     // Load groups from settings
     try {
