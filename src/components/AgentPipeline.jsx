@@ -61,6 +61,7 @@ export default function AgentPipeline({ onClose }) {
   const [currentAgent, setCurrentAgent] = useState(null)
   const [finalContent, setFinalContent] = useState('')
   const [approved, setApproved] = useState(false)
+  const [iteration, setIteration] = useState(0)
   const [savedToRitmo, setSavedToRitmo] = useState(false)
   const [savingRitmo, setSavingRitmo] = useState(false)
   const [publishModal, setPublishModal] = useState(false)
@@ -69,39 +70,83 @@ export default function AgentPipeline({ onClose }) {
   const [groups, setGroups] = useState([])
   const [selectedDests, setSelectedDests] = useState(['feed'])
 
+  const MAX_ITERATIONS = 3
+
+  async function callAgent(role, userMsg) {
+    const { data, error } = await supabase.functions.invoke('agent-chat', {
+      body: { role, product, messages: [{ role: 'user', content: userMsg }] },
+    })
+    if (error) throw error
+    return data?.content ?? 'Sem resposta'
+  }
+
   async function runPipeline() {
     if (!task.trim() || !product) return
     setStage('running')
     setResults({})
     setFinalContent('')
     setApproved(false)
+    setIteration(0)
     setSavedToRitmo(false)
     setPublished(false)
 
-    let prevResult = ''
-    let revisedContent = ''
+    // Fase 1 — Pesquisador (corre uma vez)
+    setCurrentAgent('pesquisador')
+    let research = ''
+    try {
+      research = await callAgent('pesquisador', task)
+      setResults(prev => ({ ...prev, pesquisador: research }))
+    } catch (e) {
+      research = `Erro: ${e.message}`
+      setResults(prev => ({ ...prev, pesquisador: research }))
+    }
 
-    for (const s of STAGES) {
-      setCurrentAgent(s.id)
+    // Fase 2 — Loop Copywriter → Revisor → Gerente até aprovação (máx 3x)
+    let gerenteFeedback = ''
+    let revisedContent = ''
+    let isApproved = false
+
+    for (let iter = 1; iter <= MAX_ITERATIONS && !isApproved; iter++) {
+      setIteration(iter)
+
+      // Copywriter
+      setCurrentAgent('copywriter')
+      let copywriterResult = ''
       try {
-        const userMsg = s.prompt(task, prevResult)
-        const { data, error } = await supabase.functions.invoke('agent-chat', {
-          body: { role: s.id, product, messages: [{ role: 'user', content: userMsg }] },
-        })
-        if (error) throw error
-        const result = data?.content ?? 'Sem resposta'
-        setResults(prev => ({ ...prev, [s.id]: result }))
-        if (s.id === 'revisor') revisedContent = result
-        prevResult = result
+        const copyMsg = iter === 1
+          ? `Pesquisa realizada:\n\n${research}\n\nCom base nesta pesquisa, cria conteúdo para: ${task}`
+          : `Conteúdo anterior:\n\n${revisedContent}\n\nFeedback do Gerente (tentativa ${iter - 1}):\n\n${gerenteFeedback}\n\nRevê e melhora o conteúdo corrigindo exactamente o que o Gerente apontou.`
+        copywriterResult = await callAgent('copywriter', copyMsg)
+        setResults(prev => ({ ...prev, copywriter: copywriterResult }))
       } catch (e) {
-        const errMsg = `Erro: ${e.message}`
-        setResults(prev => ({ ...prev, [s.id]: errMsg }))
-        prevResult = errMsg
+        copywriterResult = `Erro: ${e.message}`
+        setResults(prev => ({ ...prev, copywriter: copywriterResult }))
+      }
+
+      // Revisor
+      setCurrentAgent('revisor')
+      try {
+        revisedContent = await callAgent('revisor', `Revê e melhora este conteúdo:\n\n${copywriterResult}`)
+        setResults(prev => ({ ...prev, revisor: revisedContent }))
+      } catch (e) {
+        revisedContent = copywriterResult
+        setResults(prev => ({ ...prev, revisor: `Erro: ${e.message}` }))
+      }
+
+      // Gerente
+      setCurrentAgent('gerente')
+      try {
+        gerenteFeedback = await callAgent('gerente', `Avalia este conteúdo para publicação:\n\n${revisedContent}`)
+        setResults(prev => ({ ...prev, gerente: gerenteFeedback }))
+        isApproved = gerenteFeedback.includes('APROVADO')
+      } catch (e) {
+        gerenteFeedback = `Erro: ${e.message}`
+        setResults(prev => ({ ...prev, gerente: gerenteFeedback }))
       }
     }
 
     setFinalContent(revisedContent)
-    setApproved(prevResult.includes('APROVADO'))
+    setApproved(isApproved)
     setCurrentAgent(null)
     setStage('done')
   }
@@ -236,7 +281,7 @@ export default function AgentPipeline({ onClose }) {
                     <span className="text-white text-xs font-bold">{selectedSystem?.name.charAt(0)}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-gray-400 text-xs">{selectedSystem?.name}</p>
+                    <p className="text-gray-400 text-xs">{selectedSystem?.name}{iteration > 1 ? ` · Tentativa ${iteration}/${MAX_ITERATIONS}` : ''}</p>
                     <p className="text-white text-sm truncate">{task}</p>
                   </div>
                   {stage === 'done' && (
@@ -282,7 +327,7 @@ export default function AgentPipeline({ onClose }) {
                       {result && (
                         <div className="px-4 pb-3">
                           <div className="bg-surface rounded-lg p-3 text-gray-300 text-xs leading-relaxed whitespace-pre-wrap max-h-36 overflow-y-auto">
-                            {result}
+                            {stripMarkdown(result)}
                           </div>
                         </div>
                       )}
@@ -331,12 +376,19 @@ export default function AgentPipeline({ onClose }) {
                         </button>
                       </div>
                     ) : (
-                      <button
-                        onClick={() => { setStage('input'); setResults({}) }}
-                        className="text-xs text-accent-purple hover:underline"
-                      >
-                        Ajustar tarefa e tentar novamente →
-                      </button>
+                      <div className="flex flex-col gap-2">
+                        <p className="text-gray-400 text-xs">
+                          {iteration >= MAX_ITERATIONS
+                            ? `Atingido o limite de ${MAX_ITERATIONS} tentativas sem consenso. Ajusta a tarefa e tenta novamente.`
+                            : 'O Gerente devolveu o conteúdo para revisão.'}
+                        </p>
+                        <button
+                          onClick={() => { setStage('input'); setResults({}) }}
+                          className="text-xs text-accent-purple hover:underline self-start"
+                        >
+                          Ajustar tarefa e tentar novamente →
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}
