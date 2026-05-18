@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useSettings } from '../context/SettingsContext'
 import { supabase } from '../lib/supabase'
 import AgentChat from './AgentChat'
+import AgentPipeline from './AgentPipeline'
 
 const ADMIN_USER = 'admin'
 const ADMIN_PASS = 'bitzen@1987Admin'
@@ -277,6 +278,7 @@ export default function SettingsPanel() {
   const [linkedinGroups, setLinkedinGroups] = useState([])
   const [newGroup, setNewGroup] = useState({ id: '', name: '' })
   const [agentChatId, setAgentChatId] = useState(null)
+  const [pipelineOpen, setPipelineOpen] = useState(false)
 
   const [addingApp, setAddingApp] = useState(false)
   const [editingAppId, setEditingAppId] = useState(null)
@@ -526,6 +528,23 @@ export default function SettingsPanel() {
                     ))}
                   </div>
 
+                  {/* Pipeline */}
+                  <button onClick={() => setPipelineOpen(true)}
+                    className="w-full bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-orange-500/20 border border-purple-500/30 rounded-2xl p-4 text-left hover:border-purple-400/60 transition-colors group flex items-center gap-3 mb-5">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-semibold">Pipeline Completo</p>
+                      <p className="text-gray-400 text-xs">Pesquisador → Copywriter → Revisor → Gerente — automático</p>
+                    </div>
+                    <svg className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+
                   <h3 className="text-white text-sm font-semibold mb-3">Especialistas por produto</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
                     {AGENT_LIST.filter(a => a.group === 'produto').map(agent => {
@@ -602,6 +621,22 @@ export default function SettingsPanel() {
               {section === 'agents' && (
                 <div className="p-6 max-w-2xl">
                   <p className="text-gray-500 text-sm mb-5">Converse com cada agente e exporte planos em PDF.</p>
+
+                  <button onClick={() => setPipelineOpen(true)}
+                    className="w-full bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-orange-500/20 border border-purple-500/30 rounded-2xl p-5 text-left hover:border-purple-400/60 transition-colors group flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-semibold">Pipeline Completo</p>
+                      <p className="text-gray-400 text-sm mt-0.5">Os 4 agentes trabalham em sequência automaticamente</p>
+                    </div>
+                    <svg className="w-4 h-4 text-purple-400 group-hover:text-purple-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
 
                   <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">Especialistas por produto</p>
                   <div className="flex flex-col gap-3 mb-6">
@@ -987,6 +1022,11 @@ export default function SettingsPanel() {
           agentLogo={getAgentLogo(agentChatId)}
           onClose={() => setAgentChatId(null)}
         />
+      )}
+
+      {/* Pipeline modal */}
+      {pipelineOpen && (
+        <AgentPipeline onClose={() => setPipelineOpen(false)} />
       )}
     </>
   )
