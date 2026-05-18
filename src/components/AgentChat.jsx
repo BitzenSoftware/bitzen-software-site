@@ -48,6 +48,39 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
   const [publishing, setPublishing] = useState(false)
   const [publishedIds, setPublishedIds] = useState(new Set())
 
+  // RitmoWork state
+  const [savedToRitmo, setSavedToRitmo] = useState(new Set())
+  const [savingRitmo, setSavingRitmo] = useState(null)
+
+  const RITMO_API = 'https://xpywdkjpcsfepfvhtstb.supabase.co/functions/v1/ritmowork-api/v1'
+  const RITMO_KEY = 'rw_live_b374b822aeee6136f97b225c11cb9e7412d10fc310d3b69c'
+  const RITMO_LIST_ID = '1f029783-868b-429e-b25c-3dde1ad14871' // A fazer — Marketing
+  const RITMO_AREA_ID = '41c2d6f8-283e-4359-b9de-b42052cfdb91' // Marketing
+
+  async function saveToRitmoWork(content, msgIndex) {
+    setSavingRitmo(msgIndex)
+    try {
+      const title = content.split('\n')[0].replace(/^#+\s*/, '').slice(0, 80) || `Conteúdo — ${agent.name}`
+      const res = await fetch(`${RITMO_API}/tasks`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${RITMO_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          description: stripMarkdown(content),
+          list_id: RITMO_LIST_ID,
+          area_id: RITMO_AREA_ID,
+          labels: [agentId],
+        }),
+      })
+      if (!res.ok) throw new Error(await res.text())
+      setSavedToRitmo(prev => new Set([...prev, msgIndex]))
+    } catch (e) {
+      alert('Erro ao guardar no RitmoWork: ' + e.message)
+    } finally {
+      setSavingRitmo(null)
+    }
+  }
+
   const bottomRef = useRef(null)
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
@@ -230,19 +263,42 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
                     {msg.content}
                   </div>
                   {msg.role === 'assistant' && i > 0 && (
-                    <button
-                      onClick={() => !publishedIds.has(i) && openPublishModal(msg.content, i)}
-                      className={`self-start flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                        publishedIds.has(i)
-                          ? 'bg-green-500/15 text-green-400 border border-green-500/20 cursor-default'
-                          : 'bg-[#0077B5]/15 hover:bg-[#0077B5]/25 text-[#0ea5e9] border border-[#0077B5]/20'
-                      }`}
-                    >
-                      {publishedIds.has(i) ? (
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                      ) : LI_ICON}
-                      {publishedIds.has(i) ? 'Publicado!' : 'Publicar no LinkedIn'}
-                    </button>
+                    <div className="flex flex-wrap gap-1.5">
+                      {/* LinkedIn */}
+                      <button
+                        onClick={() => !publishedIds.has(i) && openPublishModal(msg.content, i)}
+                        className={`self-start flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                          publishedIds.has(i)
+                            ? 'bg-green-500/15 text-green-400 border border-green-500/20 cursor-default'
+                            : 'bg-[#0077B5]/15 hover:bg-[#0077B5]/25 text-[#0ea5e9] border border-[#0077B5]/20'
+                        }`}
+                      >
+                        {publishedIds.has(i) ? (
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        ) : LI_ICON}
+                        {publishedIds.has(i) ? 'Publicado!' : 'LinkedIn'}
+                      </button>
+
+                      {/* RitmoWork */}
+                      <button
+                        onClick={() => !savedToRitmo.has(i) && saveToRitmoWork(msg.content, i)}
+                        disabled={savingRitmo === i}
+                        className={`self-start flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                          savedToRitmo.has(i)
+                            ? 'bg-green-500/15 text-green-400 border border-green-500/20 cursor-default'
+                            : 'bg-violet-500/15 hover:bg-violet-500/25 text-violet-400 border border-violet-500/20'
+                        } disabled:opacity-50`}
+                      >
+                        {savedToRitmo.has(i) ? (
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        ) : savingRitmo === i ? (
+                          <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                        ) : (
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                        )}
+                        {savedToRitmo.has(i) ? 'Guardado!' : savingRitmo === i ? 'A guardar...' : 'RitmoWork'}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
