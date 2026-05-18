@@ -215,7 +215,7 @@ export default function AgentPipeline({ onClose }) {
       // Revisor
       setCurrentAgent('revisor')
       try {
-        revisedContent = await callAgent('revisor', `Revê e melhora este conteúdo:\n\n${copywriterResult}`)
+        revisedContent = await callAgent('revisor', `Revê este post e devolve APENAS o texto final corrigido e melhorado, pronto para publicar no LinkedIn. Não incluas análises, cabeçalhos, avaliações ou comentários — somente o post revisto.\n\nPost do Copywriter:\n\n${copywriterResult}`)
         setResults(prev => ({ ...prev, revisor: revisedContent }))
         setPreviewContent(revisedContent)
       } catch (e) {
