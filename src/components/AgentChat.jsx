@@ -1,6 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
+const SYSTEMS = [
+  { id: 'agendafacil', name: 'Agenda Fácil', color: 'from-blue-500 to-cyan-400' },
+  { id: 'clockly', name: 'Clockly', color: 'from-indigo-500 to-purple-600' },
+  { id: 'ritmowork', name: 'RitmoWork', color: 'from-violet-500 to-purple-500' },
+  { id: 'vinculo', name: 'Vínculo', color: 'from-teal-500 to-emerald-400' },
+]
+
 const AGENTS = {
   agendafacil: {
     name: 'Agenda Fácil',
@@ -26,6 +33,34 @@ const AGENTS = {
     color: 'from-teal-500 to-emerald-400',
     intro: 'Olá! Sou o especialista em Vínculo — o prontuário que fala a língua da TCC. Posso ajudar com vendas, marketing para psicólogos, estratégias de captação, conteúdo e planos de ação. O que precisa?',
   },
+  pesquisador: {
+    name: 'Pesquisador',
+    description: 'Analisa mercado, concorrentes e tendências de qualquer produto',
+    color: 'from-amber-500 to-orange-500',
+    intro: null,
+    isMultiSystem: true,
+  },
+  copywriter: {
+    name: 'Copywriter',
+    description: 'Cria posts, textos de venda e conteúdo de marketing',
+    color: 'from-pink-500 to-rose-500',
+    intro: null,
+    isMultiSystem: true,
+  },
+  revisor: {
+    name: 'Revisor',
+    description: 'Revê e melhora conteúdos criados para qualquer produto',
+    color: 'from-green-500 to-teal-500',
+    intro: null,
+    isMultiSystem: true,
+  },
+  gerente: {
+    name: 'Gerente',
+    description: 'Aprova ou devolve conteúdos para revisão',
+    color: 'from-red-500 to-orange-600',
+    intro: null,
+    isMultiSystem: true,
+  },
 }
 
 const LI_ICON = (
@@ -36,10 +71,24 @@ const LI_ICON = (
 
 export default function AgentChat({ agentId, agentLogo, onClose }) {
   const agent = AGENTS[agentId]
-  const [messages, setMessages] = useState([{ role: 'assistant', content: agent.intro }])
+  const [selectedSystem, setSelectedSystem] = useState(null)
+  const [messages, setMessages] = useState(
+    agent.isMultiSystem ? [] : [{ role: 'assistant', content: agent.intro }]
+  )
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [planTitle, setPlanTitle] = useState(`Plano — ${agent.name}`)
+
+  useEffect(() => {
+    if (selectedSystem) {
+      const sysName = SYSTEMS.find(s => s.id === selectedSystem)?.name ?? selectedSystem
+      setPlanTitle(`${agent.name} — ${sysName}`)
+      setMessages([{
+        role: 'assistant',
+        content: `Olá! Sou o ${agent.name} focado em ${sysName}. Como posso ajudar?`,
+      }])
+    }
+  }, [selectedSystem])
 
   // Publish modal state
   const [publishModal, setPublishModal] = useState(null) // { text, msgIndex }
@@ -54,8 +103,8 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
 
   const RITMO_API = 'https://xpywdkjpcsfepfvhtstb.supabase.co/functions/v1/ritmowork-api/v1'
   const RITMO_KEY = 'rw_live_b374b822aeee6136f97b225c11cb9e7412d10fc310d3b69c'
-  const RITMO_LIST_ID = '1f029783-868b-429e-b25c-3dde1ad14871' // A fazer — Marketing
-  const RITMO_AREA_ID = '41c2d6f8-283e-4359-b9de-b42052cfdb91' // Marketing
+  const RITMO_LIST_ID = '03cf2e40-5f2f-4c4f-8117-680929cc36a3' // Rascunho — Agentes IA
+  const RITMO_AREA_ID = '3177f1f6-a5c2-4593-b9cd-918deda75361' // Agentes IA
 
   async function saveToRitmoWork(content, msgIndex) {
     setSavingRitmo(msgIndex)
@@ -92,12 +141,11 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
     setInput('')
     setLoading(true)
     try {
-      const { data, error } = await supabase.functions.invoke('agent-chat', {
-        body: {
-          product: agentId,
-          messages: next.map(m => ({ role: m.role, content: m.content })),
-        },
-      })
+      const body = agent.isMultiSystem
+        ? { product: selectedSystem, role: agentId, messages: next.map(m => ({ role: m.role, content: m.content })) }
+        : { product: agentId, messages: next.map(m => ({ role: m.role, content: m.content })) }
+
+      const { data, error } = await supabase.functions.invoke('agent-chat', { body })
       if (error) throw error
       setMessages(prev => [...prev, { role: 'assistant', content: data.content ?? 'Não consegui processar. Tente novamente.' }])
     } catch {
@@ -245,6 +293,30 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
               placeholder="Título do plano (editável)..." />
           </div>
 
+          {/* System picker for multi-system agents */}
+          {agent.isMultiSystem && !selectedSystem ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 gap-6">
+              <div className="text-center">
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${agent.color} flex items-center justify-center mx-auto mb-4`}>
+                  <span className="text-white text-xl font-bold">{agent.name.charAt(0)}</span>
+                </div>
+                <p className="text-white font-semibold text-lg mb-1">Escolhe o sistema</p>
+                <p className="text-gray-500 text-sm">Para qual produto devo focar?</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
+                {SYSTEMS.map(sys => (
+                  <button
+                    key={sys.id}
+                    onClick={() => setSelectedSystem(sys.id)}
+                    className={`py-4 px-3 rounded-2xl bg-gradient-to-br ${sys.color} text-white font-semibold text-sm hover:opacity-90 active:scale-95 transition-all shadow-lg`}
+                  >
+                    {sys.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (<>
+
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
             {messages.map((msg, i) => (
@@ -322,7 +394,12 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
           <div className="px-4 py-3 border-t border-border flex gap-2 flex-shrink-0">
             <input value={input} onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
-              placeholder={`Pergunte sobre ${agent.name}...`} disabled={loading}
+              placeholder={
+                agent.isMultiSystem && selectedSystem
+                  ? `Pergunte ao ${agent.name} sobre ${SYSTEMS.find(s => s.id === selectedSystem)?.name}...`
+                  : `Pergunte sobre ${agent.name}...`
+              }
+              disabled={loading}
               className="flex-1 bg-background border border-border rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors disabled:opacity-50" />
             <button onClick={send} disabled={loading || !input.trim()}
               className="p-2.5 bg-gradient-to-r from-accent-purple to-accent-blue rounded-xl text-white hover:opacity-90 transition-opacity disabled:opacity-40">
@@ -331,6 +408,7 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
               </svg>
             </button>
           </div>
+          </>)}
         </div>
       </div>
 

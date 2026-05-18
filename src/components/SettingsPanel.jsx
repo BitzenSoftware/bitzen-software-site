@@ -258,10 +258,14 @@ function LoginForm({ onSuccess }) {
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 const AGENT_LIST = [
-  { id: 'agendafacil', name: 'Agenda Fácil', desc: 'Especialista em agendamento para clínicas', color: 'from-blue-500 to-cyan-400' },
-  { id: 'clockly', name: 'Clockly', desc: 'Ponto eletrônico, RH e folha de pagamento', color: 'from-indigo-500 to-purple-600' },
-  { id: 'ritmowork', name: 'RitmoWork', desc: 'Gestão de projetos e produtividade', color: 'from-violet-500 to-purple-500' },
-  { id: 'vinculo', name: 'Vínculo', desc: 'Prontuário eletrônico TCC para psicólogos', color: 'from-teal-500 to-emerald-400' },
+  { id: 'agendafacil', name: 'Agenda Fácil', desc: 'Especialista em agendamento para clínicas', color: 'from-blue-500 to-cyan-400', group: 'produto' },
+  { id: 'clockly', name: 'Clockly', desc: 'Ponto eletrônico, RH e folha de pagamento', color: 'from-indigo-500 to-purple-600', group: 'produto' },
+  { id: 'ritmowork', name: 'RitmoWork', desc: 'Gestão de projetos e produtividade', color: 'from-violet-500 to-purple-500', group: 'produto' },
+  { id: 'vinculo', name: 'Vínculo', desc: 'Prontuário eletrônico TCC para psicólogos', color: 'from-teal-500 to-emerald-400', group: 'produto' },
+  { id: 'pesquisador', name: 'Pesquisador', desc: 'Analisa mercado, concorrentes e tendências', color: 'from-amber-500 to-orange-500', group: 'funcional' },
+  { id: 'copywriter', name: 'Copywriter', desc: 'Cria posts e conteúdo de marketing', color: 'from-pink-500 to-rose-500', group: 'funcional' },
+  { id: 'revisor', name: 'Revisor', desc: 'Revê e melhora conteúdos criados', color: 'from-green-500 to-teal-500', group: 'funcional' },
+  { id: 'gerente', name: 'Gerente', desc: 'Aprova ou devolve conteúdos para revisão', color: 'from-red-500 to-orange-600', group: 'funcional' },
 ]
 
 export default function SettingsPanel() {
@@ -522,9 +526,9 @@ export default function SettingsPanel() {
                     ))}
                   </div>
 
-                  <h3 className="text-white text-sm font-semibold mb-4">Agentes IA — acesso rápido</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {AGENT_LIST.map(agent => {
+                  <h3 className="text-white text-sm font-semibold mb-3">Especialistas por produto</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
+                    {AGENT_LIST.filter(a => a.group === 'produto').map(agent => {
                       const agentLogo = getAgentLogo(agent.id)
                       return (
                         <button key={agent.id} onClick={() => setAgentChatId(agent.id)}
@@ -544,6 +548,24 @@ export default function SettingsPanel() {
                         </button>
                       )
                     })}
+                  </div>
+                  <h3 className="text-white text-sm font-semibold mb-3">Agentes funcionais</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {AGENT_LIST.filter(a => a.group === 'funcional').map(agent => (
+                      <button key={agent.id} onClick={() => setAgentChatId(agent.id)}
+                        className="bg-surface border border-border rounded-2xl p-4 text-left hover:border-accent-purple/40 transition-colors group flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${agent.color} flex items-center justify-center flex-shrink-0`}>
+                          <span className="text-white text-sm font-bold">{agent.name.charAt(0)}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-sm font-medium">{agent.name}</p>
+                          <p className="text-gray-500 text-xs truncate">{agent.desc}</p>
+                        </div>
+                        <svg className="w-4 h-4 text-gray-600 group-hover:text-accent-purple transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
@@ -579,9 +601,11 @@ export default function SettingsPanel() {
               {/* Agentes IA */}
               {section === 'agents' && (
                 <div className="p-6 max-w-2xl">
-                  <p className="text-gray-500 text-sm mb-5">Converse com cada agente especialista e exporte planos em PDF.</p>
-                  <div className="flex flex-col gap-3">
-                    {AGENT_LIST.map(agent => {
+                  <p className="text-gray-500 text-sm mb-5">Converse com cada agente e exporte planos em PDF.</p>
+
+                  <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">Especialistas por produto</p>
+                  <div className="flex flex-col gap-3 mb-6">
+                    {AGENT_LIST.filter(a => a.group === 'produto').map(agent => {
                       const agentLogo = getAgentLogo(agent.id)
                       return (
                         <div key={agent.id} className="bg-surface border border-border rounded-2xl p-5 flex items-center gap-4">
@@ -603,6 +627,27 @@ export default function SettingsPanel() {
                         </div>
                       )
                     })}
+                  </div>
+
+                  <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">Agentes funcionais</p>
+                  <div className="flex flex-col gap-3">
+                    {AGENT_LIST.filter(a => a.group === 'funcional').map(agent => (
+                      <div key={agent.id} className="bg-surface border border-border rounded-2xl p-5 flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${agent.color} flex items-center justify-center flex-shrink-0`}>
+                          <span className="text-white text-base font-bold">{agent.name.charAt(0)}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-semibold">{agent.name}</p>
+                          <p className="text-gray-500 text-sm mt-0.5">{agent.desc}</p>
+                        </div>
+                        <button
+                          onClick={() => setAgentChatId(agent.id)}
+                          className={`px-4 py-2 bg-gradient-to-r ${agent.color} rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity flex-shrink-0`}
+                        >
+                          Consultar
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
