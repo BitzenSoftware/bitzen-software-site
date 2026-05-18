@@ -336,7 +336,8 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
                   </div>
                   {msg.role === 'assistant' && i > 0 && (
                     <div className="flex flex-wrap gap-1.5">
-                      {/* LinkedIn */}
+                      {/* LinkedIn — só para agentes que criam conteúdo publicável */}
+                      {!['pesquisador', 'revisor', 'gerente'].includes(agentId) && (
                       <button
                         onClick={() => !publishedIds.has(i) && openPublishModal(msg.content, i)}
                         className={`self-start flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
@@ -350,6 +351,7 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
                         ) : LI_ICON}
                         {publishedIds.has(i) ? 'Publicado!' : 'LinkedIn'}
                       </button>
+                      )}
 
                       {/* RitmoWork */}
                       <button
