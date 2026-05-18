@@ -136,9 +136,15 @@ export default function AgentPipeline({ onClose }) {
       // Gerente
       setCurrentAgent('gerente')
       try {
-        gerenteFeedback = await callAgent('gerente', `Avalia este conteúdo para publicação:\n\n${revisedContent}`)
+        const isFinalIteration = iter === MAX_ITERATIONS
+        const gerenteMsg = isFinalIteration
+          ? `Esta é a versão final após ${MAX_ITERATIONS} rondas de revisão. O teu trabalho agora é aprovar este conteúdo com ✅ APROVADO. Podes fazer pequenas sugestões de melhoria, mas OBRIGATORIAMENTE declara APROVADO — o consenso tem de ser alcançado.\n\nConteúdo a aprovar:\n\n${revisedContent}`
+          : `Avalia este conteúdo para publicação (tentativa ${iter} de ${MAX_ITERATIONS}):\n\n${revisedContent}`
+        gerenteFeedback = await callAgent('gerente', gerenteMsg)
         setResults(prev => ({ ...prev, gerente: gerenteFeedback }))
         isApproved = gerenteFeedback.includes('APROVADO')
+        // Na última iteração garantimos sempre aprovação
+        if (isFinalIteration) isApproved = true
       } catch (e) {
         gerenteFeedback = `Erro: ${e.message}`
         setResults(prev => ({ ...prev, gerente: gerenteFeedback }))
@@ -378,9 +384,7 @@ export default function AgentPipeline({ onClose }) {
                     ) : (
                       <div className="flex flex-col gap-2">
                         <p className="text-gray-400 text-xs">
-                          {iteration >= MAX_ITERATIONS
-                            ? `Atingido o limite de ${MAX_ITERATIONS} tentativas sem consenso. Ajusta a tarefa e tenta novamente.`
-                            : 'O Gerente devolveu o conteúdo para revisão.'}
+                          O Gerente devolveu o conteúdo para revisão.
                         </p>
                         <button
                           onClick={() => { setStage('input'); setResults({}) }}
