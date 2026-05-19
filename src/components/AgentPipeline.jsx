@@ -261,8 +261,8 @@ export default function AgentPipeline({ onClose }) {
       let copywriterResult = ''
       try {
         const msg = iter === 1
-          ? `Pesquisa realizada:\n\n${research}\n\nCom base nesta pesquisa, cria conteúdo para: ${task}`
-          : `Conteúdo anterior:\n\n${revisedContent}\n\nFeedback do Gerente (tentativa ${iter - 1}):\n\n${gerenteFeedback}\n\nRevê e melhora o conteúdo corrigindo exactamente o que o Gerente apontou.`
+          ? `Pesquisa realizada:\n\n${research}\n\nCom base nesta pesquisa, cria AGORA um post completo e pronto para publicar no LinkedIn sobre: ${task}\n\nIMPORTANTE: Entrega directamente o texto do post, sem perguntas, sem pedidos de clarificação, sem introduções. Apenas o post.`
+          : `Post anterior:\n\n${revisedContent}\n\nFeedback do Gerente (tentativa ${iter - 1}):\n\n${gerenteFeedback}\n\nMelhora o post de LinkedIn corrigindo exactamente o que o Gerente apontou. Entrega apenas o post melhorado.`
         copywriterResult = await callAgent('copywriter', msg)
         setResults(prev => ({ ...prev, copywriter: copywriterResult }))
         setPreviewContent(copywriterResult)
