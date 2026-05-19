@@ -165,7 +165,12 @@ export default function AgentPipeline({ onClose }) {
   }, [clarifyMessages, currentAgent])
 
   function buildClarifyPrompt() {
-    return `Tarefa: "${task}"\n\nAvalia se tens informação suficiente para pesquisar e criar conteúdo de qualidade. Se a tarefa está clara, confirma brevemente o que vais trabalhar (1-2 frases). Se precisas de mais detalhes, faz até 2 perguntas curtas e directas.`
+    const productName = product ? (SYSTEMS.find(s => s.id === product)?.name ?? product) : 'Genérico'
+    return `Produto já selecionado pelo utilizador: ${productName}. NÃO questiones o produto — está definido.
+
+Tarefa solicitada: "${task}"
+
+Avalia APENAS se o objetivo ou ângulo da tarefa está suficientemente claro para criar conteúdo de qualidade. Se está claro, confirma em 1-2 frases o que vais trabalhar. Se há genuína ambiguidade no OBJETIVO (ex: para que público, que ângulo, que tom), faz NO MÁXIMO 1 pergunta directa e objectiva. NUNCA perguntes sobre o produto — já está definido.`
   }
 
   async function callAgent(role, userMsg, history = []) {
