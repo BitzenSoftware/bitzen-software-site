@@ -831,7 +831,7 @@ export default function SettingsPanel() {
                       </button>
                     </div>
 
-                    <div className="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-5">
+                    <div className="overflow-y-auto px-6 py-5 flex flex-col gap-5" style={{ maxHeight: '60vh' }}>
                       {/* Form */}
                       {!aiPostPreview && (
                         <>
@@ -906,48 +906,51 @@ export default function SettingsPanel() {
                           </div>
 
                           <p className="text-gray-600 text-xs">Slug: <span className="text-gray-400">{aiPostPreview.slug}</span></p>
-
-                          {/* Ajustes sem recomeçar */}
-                          <div className="border-t border-border/40 pt-3">
-                            <p className="text-gray-400 text-xs font-medium mb-2">Pedir ajustes ao post</p>
-                            <div className="flex gap-2">
-                              <input
-                                value={aiPostAdjustInput}
-                                onChange={e => setAiPostAdjustInput(e.target.value)}
-                                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); adjustAiPost() } }}
-                                placeholder='Ex: "Muda o título para 2025" ou "Torna o tom mais informal"'
-                                disabled={aiPostAdjusting}
-                                className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-white text-xs placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 disabled:opacity-50"
-                              />
-                              <button
-                                onClick={adjustAiPost}
-                                disabled={!aiPostAdjustInput.trim() || aiPostAdjusting}
-                                className="px-3 py-2 bg-accent-purple/20 hover:bg-accent-purple/30 text-accent-purple rounded-lg text-xs disabled:opacity-40 transition-colors flex items-center gap-1 whitespace-nowrap"
-                              >
-                                {aiPostAdjusting
-                                  ? <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-                                  : '✏️'}
-                                {aiPostAdjusting ? 'A ajustar...' : 'Ajustar'}
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className="flex gap-3">
-                            <button onClick={() => setAiPostPreview(null)}
-                              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-400 bg-background border border-border hover:text-white transition-colors">
-                              Gerar novamente
-                            </button>
-                            <button onClick={publishAiPost} disabled={aiPostSaving}
-                              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-orange-500 hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2">
-                              {aiPostSaving
-                                ? <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>A publicar...</>
-                                : '✅ Publicar no Blog'
-                              }
-                            </button>
-                          </div>
                         </div>
                       )}
                     </div>
+
+                    {/* Footer fixo — sempre visível */}
+                    {aiPostPreview && (
+                      <div className="border-t border-border px-6 py-4 flex flex-col gap-3 flex-shrink-0 bg-surface">
+                        <div>
+                          <p className="text-gray-400 text-xs font-medium mb-2">Pedir ajustes ao post</p>
+                          <div className="flex gap-2">
+                            <input
+                              value={aiPostAdjustInput}
+                              onChange={e => setAiPostAdjustInput(e.target.value)}
+                              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); adjustAiPost() } }}
+                              placeholder='Ex: "Muda o título para 2025" ou "Torna o tom mais informal"'
+                              disabled={aiPostAdjusting}
+                              className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-white text-xs placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 disabled:opacity-50"
+                            />
+                            <button
+                              onClick={adjustAiPost}
+                              disabled={!aiPostAdjustInput.trim() || aiPostAdjusting}
+                              className="px-3 py-2 bg-accent-purple/20 hover:bg-accent-purple/30 text-accent-purple rounded-lg text-xs disabled:opacity-40 transition-colors flex items-center gap-1 whitespace-nowrap"
+                            >
+                              {aiPostAdjusting
+                                ? <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                                : '✏️'}
+                              {aiPostAdjusting ? 'A ajustar...' : 'Ajustar'}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex gap-3">
+                          <button onClick={() => setAiPostPreview(null)}
+                            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-400 bg-background border border-border hover:text-white transition-colors">
+                            Gerar novamente
+                          </button>
+                          <button onClick={publishAiPost} disabled={aiPostSaving}
+                            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-orange-500 hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2">
+                            {aiPostSaving
+                              ? <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>A publicar...</>
+                              : '✅ Publicar no Blog'
+                            }
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
