@@ -290,6 +290,8 @@ export default function SettingsPanel() {
   const [aiPostGenerating, setAiPostGenerating] = useState(false)
   const [aiPostPreview, setAiPostPreview] = useState(null)
   const [aiPostSaving, setAiPostSaving] = useState(false)
+  const [aiPostAdjustInput, setAiPostAdjustInput] = useState('')
+  const [aiPostAdjusting, setAiPostAdjusting] = useState(false)
   const [addingEbook, setAddingEbook] = useState(false)
   const [editingEbookId, setEditingEbookId] = useState(null)
   const [testimonials, setTestimonials] = useState([])
@@ -430,6 +432,34 @@ export default function SettingsPanel() {
       alert('Erro ao publicar: ' + e.message)
     } finally {
       setAiPostSaving(false)
+    }
+  }
+
+  async function adjustAiPost() {
+    if (!aiPostAdjustInput.trim() || aiPostAdjusting || !aiPostPreview) return
+    const msg = aiPostAdjustInput.trim()
+    setAiPostAdjustInput('')
+    setAiPostAdjusting(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('agent-chat', {
+        body: {
+          role: 'blogwriter',
+          product: aiPostProduct || undefined,
+          messages: [{
+            role: 'user',
+            content: `Post actual em PT:\nTítulo: ${aiPostPreview.title}\nTexto: ${aiPostPreview.excerpt}\n\nPost actual em EN:\nTitle: ${aiPostPreview.title_en}\nText: ${aiPostPreview.excerpt_en}\n\nAjuste pedido: "${msg}"\n\nAplica APENAS o ajuste pedido e devolve o JSON completo com os 5 campos actualizados (title, title_en, excerpt, excerpt_en, slug).`,
+          }],
+        },
+      })
+      if (error) throw error
+      const raw = data?.content ?? ''
+      const jsonMatch = raw.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) throw new Error('Resposta inválida')
+      setAiPostPreview(JSON.parse(jsonMatch[0]))
+    } catch (e) {
+      alert('Erro ao ajustar: ' + e.message)
+    } finally {
+      setAiPostAdjusting(false)
     }
   }
 
@@ -876,6 +906,31 @@ export default function SettingsPanel() {
                           </div>
 
                           <p className="text-gray-600 text-xs">Slug: <span className="text-gray-400">{aiPostPreview.slug}</span></p>
+
+                          {/* Ajustes sem recomeçar */}
+                          <div className="border-t border-border/40 pt-3">
+                            <p className="text-gray-400 text-xs font-medium mb-2">Pedir ajustes ao post</p>
+                            <div className="flex gap-2">
+                              <input
+                                value={aiPostAdjustInput}
+                                onChange={e => setAiPostAdjustInput(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); adjustAiPost() } }}
+                                placeholder='Ex: "Muda o título para 2025" ou "Torna o tom mais informal"'
+                                disabled={aiPostAdjusting}
+                                className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-white text-xs placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 disabled:opacity-50"
+                              />
+                              <button
+                                onClick={adjustAiPost}
+                                disabled={!aiPostAdjustInput.trim() || aiPostAdjusting}
+                                className="px-3 py-2 bg-accent-purple/20 hover:bg-accent-purple/30 text-accent-purple rounded-lg text-xs disabled:opacity-40 transition-colors flex items-center gap-1 whitespace-nowrap"
+                              >
+                                {aiPostAdjusting
+                                  ? <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                                  : '✏️'}
+                                {aiPostAdjusting ? 'A ajustar...' : 'Ajustar'}
+                              </button>
+                            </div>
+                          </div>
 
                           <div className="flex gap-3">
                             <button onClick={() => setAiPostPreview(null)}
