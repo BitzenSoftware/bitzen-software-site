@@ -284,6 +284,12 @@ export default function SettingsPanel() {
   const [editingAppId, setEditingAppId] = useState(null)
   const [addingPost, setAddingPost] = useState(false)
   const [editingPostId, setEditingPostId] = useState(null)
+  const [aiPostModal, setAiPostModal] = useState(false)
+  const [aiPostTopic, setAiPostTopic] = useState('')
+  const [aiPostProduct, setAiPostProduct] = useState('')
+  const [aiPostGenerating, setAiPostGenerating] = useState(false)
+  const [aiPostPreview, setAiPostPreview] = useState(null)
+  const [aiPostSaving, setAiPostSaving] = useState(false)
   const [addingEbook, setAddingEbook] = useState(false)
   const [editingEbookId, setEditingEbookId] = useState(null)
   const [testimonials, setTestimonials] = useState([])
@@ -376,6 +382,56 @@ export default function SettingsPanel() {
   function handleAddPost(data) { setBlogPosts([{ ...data, id: Date.now() }, ...blogPosts]); setAddingPost(false) }
   function handleEditPost(data) { setBlogPosts(blogPosts.map((x) => x.id === editingPostId ? { ...data, id: editingPostId } : x)); setEditingPostId(null) }
   function handleDeletePost(id) { if (window.confirm('Remover esta postagem?')) setBlogPosts(blogPosts.filter((x) => x.id !== id)) }
+
+  async function generateAiPost() {
+    if (!aiPostTopic.trim()) return
+    setAiPostGenerating(true)
+    setAiPostPreview(null)
+    try {
+      const { data, error } = await supabase.functions.invoke('agent-chat', {
+        body: {
+          role: 'blogwriter',
+          product: aiPostProduct || undefined,
+          messages: [{ role: 'user', content: `Cria um artigo de blog sobre: ${aiPostTopic}` }],
+        },
+      })
+      if (error) throw error
+      const raw = data?.content ?? ''
+      const jsonMatch = raw.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) throw new Error('Resposta inválida da IA')
+      const parsed = JSON.parse(jsonMatch[0])
+      setAiPostPreview(parsed)
+    } catch (e) {
+      alert('Erro ao gerar post: ' + e.message)
+    } finally {
+      setAiPostGenerating(false)
+    }
+  }
+
+  async function publishAiPost() {
+    if (!aiPostPreview) return
+    setAiPostSaving(true)
+    try {
+      const newPost = {
+        id: Date.now(),
+        title: aiPostPreview.title,
+        titleEn: aiPostPreview.title_en,
+        date: new Date().toISOString().slice(0, 10),
+        excerpt: aiPostPreview.excerpt,
+        excerptEn: aiPostPreview.excerpt_en,
+        slug: aiPostPreview.slug,
+      }
+      await setBlogPosts([newPost, ...blogPosts])
+      setAiPostModal(false)
+      setAiPostTopic('')
+      setAiPostProduct('')
+      setAiPostPreview(null)
+    } catch (e) {
+      alert('Erro ao publicar: ' + e.message)
+    } finally {
+      setAiPostSaving(false)
+    }
+  }
 
   function handleAddEbook(data) { setEbooks([...(ebooks || []), { ...data, id: Date.now() }]); setAddingEbook(false) }
   function handleEditEbook(data) { setEbooks((ebooks || []).map((x) => x.id === editingEbookId ? { ...data, id: editingEbookId } : x)); setEditingEbookId(null) }
@@ -690,6 +746,17 @@ export default function SettingsPanel() {
               {/* Blog */}
               {section === 'blog' && (
                 <div className="p-6 max-w-2xl">
+                  {/* Botão Gerar com IA */}
+                  <button
+                    onClick={() => { setAiPostModal(true); setAiPostPreview(null); setAiPostTopic(''); setAiPostProduct('') }}
+                    className="w-full mb-4 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Gerar Post com IA (PT + EN)
+                  </button>
+
                   <div className="flex flex-col gap-2">
                     {blogPosts.map((post) =>
                       editingPostId === post.id ? (
@@ -709,6 +776,123 @@ export default function SettingsPanel() {
                     ) : (
                       <AddButton onClick={() => { setAddingPost(true); setEditingPostId(null) }} label="Adicionar Postagem" />
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Modal — Gerar Post com IA */}
+              {aiPostModal && (
+                <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+                  <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => !aiPostGenerating && !aiPostSaving && setAiPostModal(false)} />
+                  <div className="relative w-full max-w-2xl bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                    {/* Header */}
+                    <div className="flex items-center gap-3 px-6 py-4 border-b border-border flex-shrink-0 bg-gradient-to-r from-purple-600/10 to-orange-500/10">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-orange-500 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-white font-semibold text-sm">Gerar Post com IA</p>
+                        <p className="text-gray-400 text-xs">Português + Inglês, pronto para publicar</p>
+                      </div>
+                      <button onClick={() => setAiPostModal(false)} disabled={aiPostGenerating || aiPostSaving} className="text-gray-500 hover:text-white disabled:opacity-40">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+
+                    <div className="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-5">
+                      {/* Form */}
+                      {!aiPostPreview && (
+                        <>
+                          <div>
+                            <label className="block text-gray-400 text-xs font-medium mb-1.5">Tema ou título do artigo *</label>
+                            <textarea
+                              value={aiPostTopic}
+                              onChange={e => setAiPostTopic(e.target.value)}
+                              rows={3}
+                              placeholder='Ex: "Como o ponto electrónico reduz erros de folha de pagamento" ou "5 erros comuns na gestão de RH"'
+                              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 resize-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-400 text-xs font-medium mb-1.5">Produto relacionado (opcional)</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              {[
+                                { id: '', label: 'Genérico', color: 'from-gray-500 to-gray-600' },
+                                { id: 'agendafacil', label: 'AgendaFácil', color: 'from-blue-500 to-cyan-400' },
+                                { id: 'clockly', label: 'Clockly', color: 'from-indigo-500 to-purple-600' },
+                                { id: 'ritmowork', label: 'RitmoWork', color: 'from-violet-500 to-purple-500' },
+                                { id: 'vinculo', label: 'Vínculo', color: 'from-teal-500 to-emerald-400' },
+                              ].map(p => (
+                                <button key={p.id} onClick={() => setAiPostProduct(p.id)}
+                                  className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all border ${
+                                    aiPostProduct === p.id
+                                      ? `bg-gradient-to-r ${p.color} text-white border-transparent`
+                                      : 'bg-background border-border text-gray-400 hover:text-white'
+                                  }`}>
+                                  {p.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <button
+                            onClick={generateAiPost}
+                            disabled={!aiPostTopic.trim() || aiPostGenerating}
+                            className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-600 to-orange-500 hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2 text-sm"
+                          >
+                            {aiPostGenerating
+                              ? <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>A gerar...</>
+                              : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>Gerar Post</>
+                            }
+                          </button>
+                        </>
+                      )}
+
+                      {/* Preview */}
+                      {aiPostPreview && (
+                        <div className="flex flex-col gap-4">
+                          <div className="flex items-center gap-2 text-green-400 text-sm font-semibold">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                            Post gerado com sucesso
+                          </div>
+
+                          {/* PT */}
+                          <div className="bg-background rounded-xl p-4 border border-border">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="text-xs font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">🇧🇷 PT</span>
+                            </div>
+                            <p className="text-white font-semibold text-sm mb-2">{aiPostPreview.title}</p>
+                            <p className="text-gray-400 text-xs leading-relaxed line-clamp-4">{aiPostPreview.excerpt}</p>
+                          </div>
+
+                          {/* EN */}
+                          <div className="bg-background rounded-xl p-4 border border-border">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="text-xs font-bold bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">🇺🇸 EN</span>
+                            </div>
+                            <p className="text-white font-semibold text-sm mb-2">{aiPostPreview.title_en}</p>
+                            <p className="text-gray-400 text-xs leading-relaxed line-clamp-4">{aiPostPreview.excerpt_en}</p>
+                          </div>
+
+                          <p className="text-gray-600 text-xs">Slug: <span className="text-gray-400">{aiPostPreview.slug}</span></p>
+
+                          <div className="flex gap-3">
+                            <button onClick={() => setAiPostPreview(null)}
+                              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-400 bg-background border border-border hover:text-white transition-colors">
+                              Gerar novamente
+                            </button>
+                            <button onClick={publishAiPost} disabled={aiPostSaving}
+                              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-orange-500 hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2">
+                              {aiPostSaving
+                                ? <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>A publicar...</>
+                                : '✅ Publicar no Blog'
+                              }
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
