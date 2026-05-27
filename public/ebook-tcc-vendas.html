@@ -8,6 +8,19 @@
 <link rel="icon" href="https://vinculo.bitzen.app/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script type="text/javascript">
+  function importHotmart() {
+    var imported = document.createElement('script');
+    imported.src = 'https://static.hotmart.com/checkout/widget.min.js';
+    document.head.appendChild(imported);
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = 'https://static.hotmart.com/css/hotmart-fb.min.css';
+    document.head.appendChild(link);
+  }
+  importHotmart();
+</script>
 <style>
   :root {
     --verde: #7C9E8E;
@@ -840,7 +853,7 @@
       </svg>
       <span>Vínculo · Bitzen Software</span>
     </div>
-    <button class="nav-cta btn-comprar-js">Comprar agora — R$&nbsp;47</button>
+    <a onclick="return false;" href="https://pay.hotmart.com/E106013878H?checkoutMode=2" class="nav-cta hotmart-fb hotmart__button-checkout">Comprar agora — R$&nbsp;47</a>
   </div>
 </nav>
 
@@ -870,12 +883,9 @@
       </div>
 
       <div class="hero-cta-group">
-        <button class="btn-comprar btn-comprar-js">
-          <span class="btn-txt">Quero o ebook — R$ 47</span>
-          <span class="spinner"></span>
-        </button>
+        <a onclick="return false;" href="https://pay.hotmart.com/E106013878H?checkoutMode=2" class="btn-comprar hotmart-fb hotmart__button-checkout">Quero o ebook — R$ 47</a>
         <div class="hero-garantia">
-          🔒&nbsp; Pagamento seguro via Stripe &nbsp;·&nbsp; PDF imediato após confirmação
+          🔒&nbsp; Pagamento seguro via Hotmart &nbsp;·&nbsp; PDF imediato após confirmação
         </div>
       </div>
     </div>
@@ -1159,15 +1169,10 @@
           <li><span>✓</span> Atualizações futuras incluídas</li>
         </ul>
 
-        <button class="btn-comprar-lg btn-comprar-js">
-          <span class="btn-loading">
-            <span class="btn-txt">Comprar agora — R$ 47</span>
-            <span class="spinner"></span>
-          </span>
-        </button>
+        <a onclick="return false;" href="https://pay.hotmart.com/E106013878H?checkoutMode=2" class="btn-comprar-lg hotmart-fb hotmart__button-checkout">Comprar agora — R$ 47</a>
 
         <div class="preco-seguranca">
-          🔒&nbsp; Pagamento 100% seguro via Stripe &nbsp;·&nbsp; Cartão, PIX ou boleto
+          🔒&nbsp; Pagamento 100% seguro via Hotmart &nbsp;·&nbsp; Cartão, PIX ou boleto
         </div>
 
         <div class="preco-garantia">
@@ -1220,10 +1225,7 @@
 <div class="footer-cta">
   <h2>Comece hoje.<br>Documente melhor amanhã.</h2>
   <p>Templates prontos, conformidade garantida, conteúdo que você vai usar na próxima sessão.</p>
-  <button class="btn-comprar btn-comprar-js">
-    <span class="btn-txt">Quero o ebook — R$ 47</span>
-    <span class="spinner"></span>
-  </button>
+  <a onclick="return false;" href="https://pay.hotmart.com/E106013878H?checkoutMode=2" class="btn-comprar hotmart-fb hotmart__button-checkout">Quero o ebook — R$ 47</a>
 </div>
 
 <!-- ── Rodapé ── -->
@@ -1231,46 +1233,6 @@
   <p>© 2026 <a href="https://vinculo.bitzen.app/">Vínculo</a> · Bitzen Software · Todos os direitos reservados</p>
 </footer>
 
-<script>
-  // ── Configuração — preencha após criar o produto no Stripe ──
-  const SUPABASE_URL = 'https://xrswyaqeqweznqdqeygf.supabase.co'
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhyc3d5YXFlcXdlem5xZHFleWdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5OTc2NTQsImV4cCI6MjA5MzU3MzY1NH0.UElZZu5rJ_eX45P2MnKMzZMth4gvFUcwZh5LwNY7PBE'
-
-  async function checkout() {
-    const btns = document.querySelectorAll('.btn-comprar-js')
-    btns.forEach(b => b.classList.add('loading'))
-
-    try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/stripe-ebook-checkout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          success_url: window.location.origin + '/ebook-tcc-sucesso.html',
-          cancel_url: window.location.href,
-        }),
-      })
-
-      const data = await res.json()
-
-      if (data?.url) {
-        window.location.href = data.url
-      } else {
-        throw new Error(data?.error || 'Erro ao criar sessão de pagamento')
-      }
-    } catch (err) {
-      alert('Erro ao processar: ' + err.message)
-      btns.forEach(b => b.classList.remove('loading'))
-    }
-  }
-
-  document.querySelectorAll('.btn-comprar-js').forEach(btn => {
-    btn.addEventListener('click', checkout)
-  })
-</script>
 
 </body>
 </html>
