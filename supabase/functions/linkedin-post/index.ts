@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS })
 
   try {
-    const { text: rawText, groupId, agentId } = await req.json()
+    const { text: rawText, groupId, agentId, asOrg } = await req.json()
     if (!rawText?.trim()) return Response.json({ error: 'text is required' }, { status: 400, headers: CORS })
 
     // Strip markdown formatting that LinkedIn renders as plain text
@@ -26,6 +26,16 @@ Deno.serve(async (req) => {
     const clientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET')!
     const refreshToken = Deno.env.get('LINKEDIN_REFRESH_TOKEN')!
     const personId = Deno.env.get('LINKEDIN_PERSON_ID')!
+    const orgId = Deno.env.get('LINKEDIN_ORG_ID')
+
+    // Only organization posts appear in organizationalEntityShareStatistics
+    // (impressions, engagement rate). Person posts have no equivalent read API.
+    if (asOrg && !orgId) {
+      return Response.json(
+        { error: 'asOrg requested but LINKEDIN_ORG_ID is not set' },
+        { status: 400, headers: CORS }
+      )
+    }
 
     // Get fresh access token
     const tokenRes = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
@@ -43,7 +53,7 @@ Deno.serve(async (req) => {
 
     // Build post body — group uses containerEntity
     const postBody: Record<string, unknown> = {
-      author: `urn:li:person:${personId}`,
+      author: asOrg ? `urn:li:organization:${orgId}` : `urn:li:person:${personId}`,
       lifecycleState: 'PUBLISHED',
       specificContent: {
         'com.linkedin.ugc.ShareContent': {
@@ -70,7 +80,8 @@ Deno.serve(async (req) => {
     if (!postRes.ok) throw new Error(`LinkedIn post failed (${postRes.status}): ${await postRes.text()}`)
 
     const postId = postRes.headers.get('x-restli-id') || 'unknown'
-    const destination = groupId ? `group:${groupId}` : 'feed'
+    // linkedin-org-stats selects on destination='org' to know which posts have stats.
+    const destination = groupId ? `group:${groupId}` : asOrg ? 'org' : 'feed'
 
     // Save to Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
