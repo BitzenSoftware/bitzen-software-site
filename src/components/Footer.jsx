@@ -51,6 +51,11 @@ export default function Footer() {
 
         <p className="text-gray-500 text-sm">
           © {year} Bitzen Software. {t('footer_rights')}
+          {' · '}
+          <a href="/privacidade.html"
+            className="hover:text-white transition-colors duration-200 underline underline-offset-2">
+            {t('footer_privacy')}
+          </a>
         </p>
 
         <div className="flex items-center gap-4">

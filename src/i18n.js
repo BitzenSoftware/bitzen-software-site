@@ -69,6 +69,7 @@ export const translations = {
     contact_send_another: 'Enviar outra mensagem',
     // Footer
     footer_rights: 'Todos os direitos reservados.',
+    footer_privacy: 'Política de Privacidade',
   },
   en: {
     // Navbar
@@ -140,5 +141,6 @@ export const translations = {
     contact_send_another: 'Send another message',
     // Footer
     footer_rights: 'All rights reserved.',
+    footer_privacy: 'Privacy Policy',
   },
 }

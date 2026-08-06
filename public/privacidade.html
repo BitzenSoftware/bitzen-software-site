@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/png" href="/logo-bitzen.png" />
+<title>Política de Privacidade — Bitzen Software</title>
+<meta name="description" content="Política de Privacidade da Bitzen Software: que dados recolhemos, para quê, onde ficam e quais são os seus direitos." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --background: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --purple: #6c3de8;
+    --blue: #3d8ef8;
+    --text: #e8e8f0;
+    --muted: #9a9aae;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+  header { border-bottom: 1px solid var(--border); padding-bottom: 2rem; margin-bottom: 2.5rem; }
+  .logo { display: inline-flex; align-items: center; gap: .625rem; text-decoration: none; color: var(--text); font-weight: 600; }
+  .logo img { width: 32px; height: 32px; border-radius: 6px; }
+  h1 { font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 700; margin: 1.75rem 0 .5rem; letter-spacing: -.02em; }
+  h2 {
+    font-size: 1.125rem; font-weight: 600; margin: 2.5rem 0 .75rem;
+    color: #fff; letter-spacing: -.01em;
+  }
+  h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 .5rem; color: #fff; }
+  p, li { color: var(--text); }
+  a { color: var(--blue); }
+  .meta { color: var(--muted); font-size: .875rem; margin: 0; }
+  .lead { color: var(--muted); font-size: 1.0625rem; }
+  ul { padding-left: 1.25rem; }
+  li { margin: .375rem 0; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9375rem; display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: .625rem .75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: #fff; font-weight: 600; white-space: nowrap; }
+  .note {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--purple);
+    border-radius: 8px; padding: 1rem 1.25rem; margin: 1.5rem 0;
+  }
+  .note p { margin: .25rem 0; color: var(--muted); font-size: .9375rem; }
+  .langbar { margin: 0 0 2rem; font-size: .875rem; }
+  .langbar a { margin-right: 1rem; }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 4rem 0 2.5rem; }
+  footer { color: var(--muted); font-size: .875rem; border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 3rem; }
+  code { background: var(--surface); padding: .125rem .375rem; border-radius: 4px; font-size: .875em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <a class="logo" href="/"><img src="/logo-bitzen.png" alt="" />Bitzen Software</a>
+    <h1>Política de Privacidade</h1>
+    <p class="meta">Última atualização: 6 de agosto de 2026</p>
+  </header>
+
+  <p class="langbar"><strong>Português</strong> · <a href="#en">English version below</a></p>
+
+  <p class="lead">
+    Esta política descreve que dados pessoais a Bitzen Software recolhe, com que finalidade,
+    onde são armazenados, por quanto tempo e que direitos lhe assistem.
+  </p>
+
+  <h2>1. Quem somos</h2>
+  <p>
+    <strong>Bitzen Software</strong> é a entidade responsável pelo tratamento dos dados pessoais
+    descritos nesta política.
+  </p>
+  <p>
+    Contacto para assuntos de privacidade: <a href="mailto:bitzensoftware@bitzen.app">bitzensoftware@bitzen.app</a><br />
+    Website: <a href="https://bitzen.app">bitzen.app</a>
+  </p>
+
+  <h2>2. Dados que recolhemos</h2>
+
+  <h3>2.1 Dados do site</h3>
+  <ul>
+    <li><strong>Formulário de contacto:</strong> nome, e-mail e o conteúdo da mensagem que nos envia.</li>
+    <li><strong>Compra de e-books:</strong> o pagamento é processado por terceiros (Stripe e Hotmart). Não recebemos nem armazenamos dados de cartão — apenas a confirmação da transação e o e-mail de entrega.</li>
+    <li><strong>Preferências:</strong> idioma e definições de visualização, guardados localmente no seu navegador.</li>
+  </ul>
+
+  <h3>2.2 Dados obtidos através da LinkedIn API</h3>
+  <p>
+    Operamos uma integração com a LinkedIn para publicar conteúdo e medir o seu desempenho.
+    Através das APIs oficiais da LinkedIn, e apenas mediante autorização explícita do titular
+    da conta, podemos aceder a:
+  </p>
+  <table>
+    <thead>
+      <tr><th>Categoria</th><th>Dados</th><th>Finalidade</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Publicações</td>
+        <td>Texto, data de publicação e identificador do post</td>
+        <td>Registar o que foi publicado e associar às métricas</td>
+      </tr>
+      <tr>
+        <td>Métricas de conteúdo</td>
+        <td>Impressões, cliques, reações, comentários, partilhas e taxa de envolvimento</td>
+        <td>Avaliar o desempenho editorial e orientar futuros conteúdos</td>
+      </tr>
+      <tr>
+        <td>Audiência (agregada)</td>
+        <td>Contagens de seguidores por função, senioridade, setor, dimensão da empresa e localização</td>
+        <td>Compreender o perfil profissional da audiência</td>
+      </tr>
+      <tr>
+        <td>Perfil do titular</td>
+        <td>Nome, foto, identificador e organizações que administra</td>
+        <td>Autenticar e determinar permissões</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <p>
+      <strong>Dados de audiência são agregados.</strong> As estatísticas de seguidores são recebidas
+      da LinkedIn já sob a forma de contagens por categoria. Não recebemos, não construímos e não
+      armazenamos perfis individuais dos seguidores a partir destes dados.
+    </p>
+  </div>
+
+  <p>
+    Se um membro da LinkedIn comentar publicamente numa das nossas publicações, o comentário e o
+    nome público do autor podem ser apresentados nas nossas ferramentas internas, tal como já são
+    visíveis publicamente na própria LinkedIn.
+  </p>
+
+  <h3>2.3 O que não fazemos</h3>
+  <ul>
+    <li>Não fazemos <em>scraping</em> da LinkedIn nem de qualquer outra plataforma.</li>
+    <li>Não recolhemos endereços de e-mail a partir de perfis, nem os inferimos ou adivinhamos.</li>
+    <li>Não enviamos mensagens automatizadas em nome de utilizadores.</li>
+    <li>Não vendemos, alugamos nem cedemos dados pessoais a terceiros.</li>
+    <li>Não usamos dados da LinkedIn para treinar modelos de inteligência artificial.</li>
+  </ul>
+
+  <h2>3. Fundamento legal</h2>
+  <p>
+    Tratamos dados pessoais ao abrigo da Lei Geral de Proteção de Dados (Lei n.º 13.709/2018, LGPD)
+    e do Regulamento Geral sobre a Proteção de Dados (RGPD/UE 2016/679), consoante aplicável:
+  </p>
+  <ul>
+    <li><strong>Consentimento</strong> — para o acesso a dados da LinkedIn, concedido no fluxo de autorização OAuth e revogável a qualquer momento.</li>
+    <li><strong>Execução de contrato</strong> — para processar compras e entregar produtos adquiridos.</li>
+    <li><strong>Interesse legítimo</strong> — para medir o desempenho do nosso próprio conteúdo e manter a segurança dos sistemas.</li>
+  </ul>
+
+  <h2>4. Onde os dados são armazenados</h2>
+  <p>
+    Os dados são armazenados em infraestrutura da <strong>Supabase</strong> (PostgreSQL gerido) e o
+    site é servido pela <strong>Vercel</strong>. Ambos podem processar dados fora do seu país de
+    residência; nesses casos, as transferências internacionais assentam nas cláusulas contratuais
+    padrão dos respetivos fornecedores.
+  </p>
+  <p>Subprocessadores que utilizamos:</p>
+  <ul>
+    <li><strong>Supabase</strong> — base de dados e funções de servidor</li>
+    <li><strong>Vercel</strong> — alojamento do website</li>
+    <li><strong>Stripe</strong> e <strong>Hotmart</strong> — processamento de pagamentos</li>
+    <li><strong>Resend</strong> — envio de e-mails transacionais</li>
+    <li><strong>Anthropic</strong> — geração e análise de texto. Não são enviados dados pessoais de terceiros para este serviço.</li>
+  </ul>
+
+  <h2>5. Retenção</h2>
+  <ul>
+    <li><strong>Métricas de publicações:</strong> conservadas enquanto a integração estiver ativa, para permitir comparação histórica.</li>
+    <li><strong>Tokens de acesso:</strong> eliminados quando a autorização é revogada.</li>
+    <li><strong>Mensagens de contacto:</strong> até 24 meses após o último contacto.</li>
+    <li><strong>Registos de compra:</strong> pelo período exigido pela legislação fiscal aplicável.</li>
+  </ul>
+  <p>Revogar a autorização na LinkedIn interrompe de imediato qualquer recolha futura.</p>
+
+  <h2>6. Os seus direitos</h2>
+  <p>
+    Pode solicitar, a qualquer momento, o acesso, a correção, a portabilidade, a limitação do
+    tratamento, a oposição ou a eliminação dos seus dados pessoais, bem como retirar o consentimento
+    previamente dado. Escreva para
+    <a href="mailto:bitzensoftware@bitzen.app">bitzensoftware@bitzen.app</a>; respondemos no prazo de 30 dias.
+  </p>
+  <p>
+    Pode ainda apresentar reclamação junto da autoridade de controlo competente — a ANPD, no Brasil,
+    ou a CNPD, em Portugal.
+  </p>
+  <p>
+    Para revogar o acesso da nossa aplicação à sua conta LinkedIn, aceda a
+    <em>Definições e privacidade → Privacidade de dados → Outras aplicações → Serviços permitidos</em>.
+  </p>
+
+  <h2>7. Segurança</h2>
+  <p>
+    As credenciais de API são guardadas cifradas no gestor de segredos da Supabase e nunca são
+    expostas no navegador. O acesso à base de dados é restrito por políticas de <em>row-level
+    security</em>. Todo o tráfego é transmitido sobre TLS.
+  </p>
+
+  <h2>8. Cookies</h2>
+  <p>
+    O site não utiliza cookies de publicidade nem de rastreio entre sites. As suas preferências de
+    idioma e de visualização ficam em <code>localStorage</code>, no seu próprio navegador, e podem
+    ser apagadas nas definições do mesmo.
+  </p>
+
+  <h2>9. Menores</h2>
+  <p>
+    Os nossos serviços destinam-se a profissionais e empresas. Não recolhemos intencionalmente dados
+    de menores de 18 anos.
+  </p>
+
+  <h2>10. Alterações</h2>
+  <p>
+    Alterações materiais a esta política serão publicadas nesta página com a data de atualização
+    revista.
+  </p>
+
+  <hr />
+
+  <h1 id="en">Privacy Policy</h1>
+  <p class="meta">Last updated: 6 August 2026 · <a href="#">Versão portuguesa acima</a></p>
+
+  <p class="lead">
+    This policy explains what personal data Bitzen Software collects, why, where it is stored, for
+    how long, and what rights you have.
+  </p>
+
+  <h2>1. Who we are</h2>
+  <p>
+    <strong>Bitzen Software</strong> is the controller responsible for the processing of the
+    personal data described in this policy.
+  </p>
+  <p>
+    Privacy contact: <a href="mailto:bitzensoftware@bitzen.app">bitzensoftware@bitzen.app</a><br />
+    Website: <a href="https://bitzen.app">bitzen.app</a>
+  </p>
+
+  <h2>2. Data we collect</h2>
+
+  <h3>2.1 Website data</h3>
+  <ul>
+    <li><strong>Contact form:</strong> name, email address and the message you send us.</li>
+    <li><strong>E-book purchases:</strong> payments are handled by third parties (Stripe and Hotmart). We never receive or store card details — only transaction confirmation and the delivery email address.</li>
+    <li><strong>Preferences:</strong> language and display settings, stored locally in your browser.</li>
+  </ul>
+
+  <h3>2.2 Data obtained through the LinkedIn API</h3>
+  <p>
+    We operate a LinkedIn integration to publish content and measure its performance. Through
+    LinkedIn's official APIs, and only with the explicit authorisation of the account holder, we may
+    access:
+  </p>
+  <table>
+    <thead>
+      <tr><th>Category</th><th>Data</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Posts</td>
+        <td>Text, publication date and post identifier</td>
+        <td>Record what was published and link it to its metrics</td>
+      </tr>
+      <tr>
+        <td>Content metrics</td>
+        <td>Impressions, clicks, reactions, comments, shares and engagement rate</td>
+        <td>Assess editorial performance and guide future content</td>
+      </tr>
+      <tr>
+        <td>Audience (aggregated)</td>
+        <td>Follower counts by job function, seniority, industry, company size and location</td>
+        <td>Understand the professional profile of the audience</td>
+      </tr>
+      <tr>
+        <td>Account holder profile</td>
+        <td>Name, photo, identifier and administered organisations</td>
+        <td>Authenticate and determine permissions</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <p>
+      <strong>Audience data is aggregated.</strong> Follower statistics are received from LinkedIn
+      already in the form of counts per category. We do not receive, build or store individual
+      follower profiles from this data.
+    </p>
+  </div>
+
+  <p>
+    If a LinkedIn member comments publicly on one of our posts, the comment and the author's public
+    name may be shown in our internal tools, as they already are publicly on LinkedIn itself.
+  </p>
+
+  <h3>2.3 What we do not do</h3>
+  <ul>
+    <li>We do not scrape LinkedIn or any other platform.</li>
+    <li>We do not collect email addresses from profiles, nor infer or guess them.</li>
+    <li>We do not send automated messages on behalf of users.</li>
+    <li>We do not sell, rent or otherwise transfer personal data to third parties.</li>
+    <li>We do not use LinkedIn data to train artificial intelligence models.</li>
+  </ul>
+
+  <h2>3. Legal basis</h2>
+  <p>
+    We process personal data under Brazil's General Data Protection Law (Law 13.709/2018, LGPD) and
+    the EU General Data Protection Regulation (GDPR 2016/679), as applicable:
+  </p>
+  <ul>
+    <li><strong>Consent</strong> — for access to LinkedIn data, granted through the OAuth authorisation flow and revocable at any time.</li>
+    <li><strong>Contract performance</strong> — to process purchases and deliver purchased products.</li>
+    <li><strong>Legitimate interest</strong> — to measure the performance of our own content and maintain system security.</li>
+  </ul>
+
+  <h2>4. Where data is stored</h2>
+  <p>
+    Data is stored on <strong>Supabase</strong> infrastructure (managed PostgreSQL) and the website
+    is served by <strong>Vercel</strong>. Both may process data outside your country of residence;
+    where that happens, international transfers rely on the standard contractual clauses of the
+    respective providers.
+  </p>
+  <p>Subprocessors we use:</p>
+  <ul>
+    <li><strong>Supabase</strong> — database and server functions</li>
+    <li><strong>Vercel</strong> — website hosting</li>
+    <li><strong>Stripe</strong> and <strong>Hotmart</strong> — payment processing</li>
+    <li><strong>Resend</strong> — transactional email delivery</li>
+    <li><strong>Anthropic</strong> — text generation and analysis. No third-party personal data is sent to this service.</li>
+  </ul>
+
+  <h2>5. Retention</h2>
+  <ul>
+    <li><strong>Post metrics:</strong> retained while the integration remains active, to allow historical comparison.</li>
+    <li><strong>Access tokens:</strong> deleted when authorisation is revoked.</li>
+    <li><strong>Contact messages:</strong> up to 24 months after the last contact.</li>
+    <li><strong>Purchase records:</strong> for the period required by applicable tax law.</li>
+  </ul>
+  <p>Revoking authorisation on LinkedIn immediately stops any further collection.</p>
+
+  <h2>6. Your rights</h2>
+  <p>
+    You may at any time request access to, correction of, portability of, restriction of processing
+    of, objection to, or deletion of your personal data, and withdraw consent previously given.
+    Write to <a href="mailto:bitzensoftware@bitzen.app">bitzensoftware@bitzen.app</a>; we respond within
+    30 days.
+  </p>
+  <p>
+    You may also lodge a complaint with the competent supervisory authority — the ANPD in Brazil, or
+    the CNPD in Portugal.
+  </p>
+  <p>
+    To revoke our application's access to your LinkedIn account, go to
+    <em>Settings &amp; Privacy → Data privacy → Other applications → Permitted services</em>.
+  </p>
+
+  <h2>7. Security</h2>
+  <p>
+    API credentials are stored encrypted in Supabase's secret manager and are never exposed in the
+    browser. Database access is restricted by row-level security policies. All traffic is
+    transmitted over TLS.
+  </p>
+
+  <h2>8. Cookies</h2>
+  <p>
+    The site uses no advertising or cross-site tracking cookies. Your language and display
+    preferences are kept in <code>localStorage</code> in your own browser and can be cleared from
+    your browser settings.
+  </p>
+
+  <h2>9. Minors</h2>
+  <p>
+    Our services are intended for professionals and businesses. We do not knowingly collect data
+    from anyone under 18.
+  </p>
+
+  <h2>10. Changes</h2>
+  <p>
+    Material changes to this policy will be published on this page with a revised update date.
+  </p>
+
+  <footer>
+    Bitzen Software · <a href="/">bitzen.app</a> ·
+    <a href="mailto:bitzensoftware@bitzen.app">bitzensoftware@bitzen.app</a>
+  </footer>
+
+</div>
+</body>
+</html>
