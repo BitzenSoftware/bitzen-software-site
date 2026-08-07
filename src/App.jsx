@@ -10,6 +10,7 @@ import Testimonials from './components/Testimonials'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 import SettingsPanel from './components/SettingsPanel'
+import PasswordRecovery from './components/PasswordRecovery'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
         </main>
         <Footer />
         <SettingsPanel />
+        <PasswordRecovery />
       </div>
     </SettingsProvider>
     </LanguageProvider>
