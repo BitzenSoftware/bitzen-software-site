@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { useAgents } from '../lib/useProductAgents'
 
 // Products come from the agents table via useProductAgents — a hardcoded list
 // here meant an app added in the panel never appeared as a target.
@@ -66,8 +67,23 @@ const LI_ICON = (
 )
 
 export default function AgentChat({ agentId, agentLogo, onClose }) {
-  const { systems: SYSTEMS } = useProductAgents()
-  const agent = AGENTS[agentId]
+  const { agents: ALL_AGENTS } = useAgents()
+  const SYSTEMS = ALL_AGENTS.filter(a => a.group === 'produto')
+
+  // AGENTS only covers the agents that existed when it was written. Products
+  // added in the panel get an agent automatically, so fall back to its database
+  // row instead of crashing on an unknown id. Anything created this way is a
+  // product agent, which is never multi-system.
+  const dbAgent = ALL_AGENTS.find(a => a.id === agentId)
+  const agent = AGENTS[agentId] ?? {
+    name: dbAgent?.name || agentId,
+    description: dbAgent?.desc || '',
+    color: dbAgent?.color || 'from-slate-500 to-slate-600',
+    intro: dbAgent
+      ? `Olá! Sou o especialista em ${dbAgent.name}. Como posso ajudar?`
+      : 'Olá! Como posso ajudar?',
+    isMultiSystem: false,
+  }
   const [selectedSystem, setSelectedSystem] = useState(null)
   const [messages, setMessages] = useState(
     agent.isMultiSystem ? [] : [{ role: 'assistant', content: agent.intro }]

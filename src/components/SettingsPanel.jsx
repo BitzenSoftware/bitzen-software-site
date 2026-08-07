@@ -5,6 +5,7 @@ import AgentChat from './AgentChat'
 import AgentPipeline from './AgentPipeline'
 import SkillsManager from './SkillsManager'
 import { adminData } from '../lib/adminData'
+import { useAgents } from '../lib/useProductAgents'
 
 // Credentials used to live here as constants. Anything in this file ships in
 // the public bundle, so they were readable by any visitor — login now goes
@@ -270,19 +271,11 @@ function LoginForm({ onSuccess }) {
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
-const AGENT_LIST = [
-  { id: 'agendafacil', name: 'Agenda Fácil', desc: 'Especialista em agendamento para clínicas', color: 'from-blue-500 to-cyan-400', group: 'produto' },
-  { id: 'clockly', name: 'Clockly', desc: 'Ponto eletrônico, RH e folha de pagamento', color: 'from-indigo-500 to-purple-600', group: 'produto' },
-  { id: 'ritmowork', name: 'RitmoWork', desc: 'Gestão de projetos e produtividade', color: 'from-violet-500 to-purple-500', group: 'produto' },
-  { id: 'vinculo', name: 'Vínculo', desc: 'Prontuário eletrônico TCC para psicólogos', color: 'from-teal-500 to-emerald-400', group: 'produto' },
-  { id: 'pesquisador', name: 'Pesquisador', desc: 'Analisa mercado, concorrentes e tendências', color: 'from-amber-500 to-orange-500', group: 'funcional' },
-  { id: 'copywriter', name: 'Copywriter', desc: 'Cria posts e conteúdo de marketing', color: 'from-pink-500 to-rose-500', group: 'funcional' },
-  { id: 'revisor', name: 'Revisor', desc: 'Revê e melhora conteúdos criados', color: 'from-green-500 to-teal-500', group: 'funcional' },
-  { id: 'gerente', name: 'Gerente', desc: 'Aprova ou devolve conteúdos para revisão', color: 'from-red-500 to-orange-600', group: 'funcional' },
-]
+// Agents come from the database via useAgents — see src/lib/useProductAgents.js.
 
 export default function SettingsPanel() {
   const { logo, setLogo, apps, setApps, blogPosts, setBlogPosts, ebooks, setEbooks, contactEmail, setContactEmail, socialLinks, setSocialLinks, dbError, setDbError, loading } = useSettings()
+  const { agents: AGENT_LIST } = useAgents()
 
   const [open, setOpen] = useState(false)
   // Authentication is a real Supabase session now, restored on load and kept in
@@ -526,8 +519,13 @@ export default function SettingsPanel() {
   const pending = testimonials.filter(t => !t.approved)
   const approved = testimonials.filter(t => t.approved)
 
+  // Agents carry app_id, so the logo is a direct lookup. The previous version
+  // matched the app name against the agent slug with a special case for
+  // agendafacil, which broke for any product whose name did not line up.
   function getAgentLogo(agentId) {
-    return apps.find(a => a.name.toLowerCase().replace(/\s/g, '').startsWith(agentId.replace('agendafacil', 'agenda')))?.logo
+    const agent = AGENT_LIST.find(a => a.id === agentId)
+    if (!agent?.appId) return undefined
+    return apps.find(a => String(a.id) === String(agent.appId))?.logo
   }
 
   const NAV = [
@@ -911,10 +909,8 @@ export default function SettingsPanel() {
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                               {[
                                 { id: '', label: 'Genérico', color: 'from-gray-500 to-gray-600' },
-                                { id: 'agendafacil', label: 'AgendaFácil', color: 'from-blue-500 to-cyan-400' },
-                                { id: 'clockly', label: 'Clockly', color: 'from-indigo-500 to-purple-600' },
-                                { id: 'ritmowork', label: 'RitmoWork', color: 'from-violet-500 to-purple-500' },
-                                { id: 'vinculo', label: 'Vínculo', color: 'from-teal-500 to-emerald-400' },
+                                ...AGENT_LIST.filter(a => a.group === 'produto')
+                                  .map(a => ({ id: a.id, label: a.name, color: a.color })),
                               ].map(p => (
                                 <button key={p.id} onClick={() => setAiPostProduct(p.id)}
                                   className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all border ${
