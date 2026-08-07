@@ -79,6 +79,33 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
   const [loading, setLoading] = useState(false)
   const [planTitle, setPlanTitle] = useState(`Plano — ${agent.name}`)
 
+  // Skills the agent can apply. Selecting none means "apply all active ones",
+  // which is what the edge function does when skillIds is absent.
+  const [skills, setSkills] = useState([])
+  const [activeSkills, setActiveSkills] = useState(null) // null = todas
+  const skillOwner = agent.isMultiSystem ? agentId : agentId
+
+  useEffect(() => {
+    let cancelled = false
+    supabase
+      .from('agent_skills')
+      .select('id,name,description,sort_order')
+      .eq('agent_id', skillOwner)
+      .eq('active', true)
+      .order('sort_order')
+      .then(({ data }) => { if (!cancelled) setSkills(data || []) })
+    return () => { cancelled = true }
+  }, [skillOwner])
+
+  function toggleSkill(id) {
+    setActiveSkills(prev => {
+      const current = prev ?? skills.map(s => s.id)
+      return current.includes(id) ? current.filter(x => x !== id) : [...current, id]
+    })
+  }
+
+  const selectedSkillIds = activeSkills ?? skills.map(s => s.id)
+
   useEffect(() => {
     if (selectedSystem) {
       const sysName = SYSTEMS.find(s => s.id === selectedSystem)?.name ?? selectedSystem
@@ -142,8 +169,8 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
     setLoading(true)
     try {
       const body = agent.isMultiSystem
-        ? { product: selectedSystem, role: agentId, messages: next.map(m => ({ role: m.role, content: m.content })) }
-        : { product: agentId, messages: next.map(m => ({ role: m.role, content: m.content })) }
+        ? { product: selectedSystem, role: agentId, skillIds: selectedSkillIds, messages: next.map(m => ({ role: m.role, content: m.content })) }
+        : { product: agentId, skillIds: selectedSkillIds, messages: next.map(m => ({ role: m.role, content: m.content })) }
 
       const { data, error } = await supabase.functions.invoke('agent-chat', { body })
       if (error) throw error
@@ -292,6 +319,32 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
               className="w-full bg-transparent text-gray-500 text-xs focus:outline-none focus:text-white transition-colors"
               placeholder="Título do plano (editável)..." />
           </div>
+
+          {/* Skill picker — which habilidades this conversation applies */}
+          {skills.length > 0 && (
+            <div className="px-4 py-2.5 bg-background border-b border-border flex-shrink-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-gray-600 text-[11px] uppercase tracking-wider mr-1">Habilidades</span>
+                {skills.map(s => {
+                  const on = selectedSkillIds.includes(s.id)
+                  return (
+                    <button key={s.id} onClick={() => toggleSkill(s.id)} title={s.description || s.name}
+                      className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+                        on ? 'border-accent-purple/60 bg-accent-purple/20 text-white'
+                           : 'border-border text-gray-500 hover:text-gray-300'}`}>
+                      {on ? '✓ ' : ''}{s.name}
+                    </button>
+                  )
+                })}
+                {activeSkills !== null && (
+                  <button onClick={() => setActiveSkills(null)}
+                    className="text-[11px] text-gray-600 hover:text-gray-400 underline underline-offset-2 ml-1">
+                    todas
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* System picker for multi-system agents */}
           {agent.isMultiSystem && !selectedSystem ? (

@@ -9,35 +9,31 @@ const CORS = {
 const DEFAULT_MODEL = 'claude-haiku-4-5-20251001'
 const DEFAULT_MAX_TOKENS = 1024
 
-type Skill = { agent_id: string; system_prompt: string; model: string | null; max_tokens: number | null; active: boolean }
+const SB_URL = () => Deno.env.get('SUPABASE_URL')
+const SB_KEY = () => Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-// agent_skills rows override AGENT_DEFAULTS for the same agent_id. A missing
-// row (or an unreachable table) falls back to the compiled-in default, so the
-// agents keep working even if the table is empty.
-async function loadOverrides(): Promise<Record<string, Skill>> {
-  const url = Deno.env.get('SUPABASE_URL')
-  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  if (!url || !key) return {}
+type Agent = { agent_id: string; name: string; base_prompt: string; model?: string | null; max_tokens?: number | null }
+type Skill = { id: string; agent_id: string; name: string; content: string; sort_order: number; active: boolean }
+
+async function sbGet<T>(path: string): Promise<T[]> {
+  const url = SB_URL(), key = SB_KEY()
+  if (!url || !key) return []
   try {
-    const res = await fetch(`${url}/rest/v1/agent_skills?select=*&active=eq.true`, {
-      headers: { apikey: key, Authorization: `Bearer ${key}` },
-    })
-    if (!res.ok) return {}
-    const rows: Skill[] = await res.json()
-    return Object.fromEntries(rows.map((r) => [r.agent_id, r]))
+    const res = await fetch(`${url}/rest/v1/${path}`, { headers: { apikey: key, Authorization: `Bearer ${key}` } })
+    return res.ok ? await res.json() : []
   } catch {
-    return {}
+    return []
   }
 }
 
-function resolve(id: string, overrides: Record<string, Skill>) {
-  const row = overrides[id]
-  if (row?.system_prompt) {
-    return { prompt: row.system_prompt, model: row.model || DEFAULT_MODEL, maxTokens: row.max_tokens || DEFAULT_MAX_TOKENS, source: 'db' }
-  }
-  const def = AGENT_DEFAULTS[id]
-  if (def) return { prompt: def.prompt, model: DEFAULT_MODEL, maxTokens: DEFAULT_MAX_TOKENS, source: 'default' }
-  return null
+// An agent's prompt is its base identity plus the skills selected for this
+// conversation. With no selection, every active skill is applied.
+function compose(base: string, skills: Skill[]): string {
+  if (!skills.length) return base
+  const blocks = skills
+    .map((s) => `### ${s.name}\n${s.content}`)
+    .join('\n\n')
+  return `${base}\n\n===== HABILIDADES ATIVAS NESTA CONVERSA =====\nAplique todas as habilidades abaixo. Se duas derem instruções conflituantes de tom ou formato, a que aparecer primeiro prevalece.\n\n${blocks}`
 }
 
 Deno.serve(async (req) => {
@@ -45,32 +41,49 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json()
-
-    // The frontend sends { product, role?, messages }. Older callers and manual
-    // tests send { agentId, message, history }. Accept both.
-    const { product, role, messages, agentId, message, history } = body
+    // Frontend sends { product, role?, messages, skillIds? }.
+    // Older callers send { agentId, message, history }.
+    const { product, role, messages, agentId, message, history, skillIds } = body
 
     const primary = role || agentId || product
     if (!primary) {
-      return Response.json({ error: 'Missing agent: send product, role or agentId' }, { status: 400, headers: CORS })
+      return Response.json({ error: 'Informe product, role ou agentId' }, { status: 400, headers: CORS })
     }
 
-    const overrides = await loadOverrides()
+    const [agentRows, skillRows] = await Promise.all([
+      sbGet<Agent>('agents?select=*&active=eq.true'),
+      sbGet<Skill>('agent_skills?select=*&active=eq.true&order=sort_order'),
+    ])
+    const agents = Object.fromEntries(agentRows.map((a) => [a.agent_id, a]))
+    const skillsByAgent: Record<string, Skill[]> = {}
+    for (const s of skillRows) (skillsByAgent[s.agent_id] ||= []).push(s)
 
-    const main = resolve(primary, overrides)
-    if (!main) {
+    function promptFor(id: string, applySelection: boolean): string | null {
+      const agent = agents[id]
+      const base = agent?.base_prompt?.trim() || AGENT_DEFAULTS[id]?.prompt
+      if (!base) return null
+
+      let skills = skillsByAgent[id] || []
+      if (applySelection && Array.isArray(skillIds)) {
+        skills = skills.filter((s) => skillIds.includes(s.id))
+      }
+      return compose(base, skills)
+    }
+
+    const mainPrompt = promptFor(primary, true)
+    if (!mainPrompt) {
       return Response.json(
-        { error: `Unknown agent "${primary}"`, known: Object.keys({ ...AGENT_DEFAULTS, ...overrides }) },
+        { error: `Agente desconhecido: "${primary}"`, known: [...new Set([...Object.keys(agents), ...Object.keys(AGENT_DEFAULTS)])] },
         { status: 400, headers: CORS }
       )
     }
 
-    // Functional agents (pesquisador, copywriter, ...) work on a given product:
-    // append that product's prompt so they inherit its facts and tone rules.
-    let systemPrompt = main.prompt
+    // A functional agent working on a product inherits that product's facts and
+    // tone. Its skills are not filtered by the caller's selection.
+    let systemPrompt = mainPrompt
     if (role && product && product !== role) {
-      const ctx = resolve(product, overrides)
-      if (ctx) systemPrompt += `\n\n--- CONTEXTO DO PRODUTO EM CAUSA ---\n${ctx.prompt}`
+      const ctx = promptFor(product, false)
+      if (ctx) systemPrompt += `\n\n===== CONTEXTO DO PRODUTO EM CAUSA =====\n${ctx}`
     }
 
     const chatMessages = Array.isArray(messages) && messages.length
@@ -81,12 +94,13 @@ Deno.serve(async (req) => {
         ]
 
     if (!chatMessages.length) {
-      return Response.json({ error: 'No messages provided' }, { status: 400, headers: CORS })
+      return Response.json({ error: 'Nenhuma mensagem enviada' }, { status: 400, headers: CORS })
     }
 
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
-    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured')
+    if (!apiKey) throw new Error('ANTHROPIC_API_KEY não configurado')
 
+    const agent = agents[primary]
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -95,8 +109,8 @@ Deno.serve(async (req) => {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: main.model,
-        max_tokens: main.maxTokens,
+        model: agent?.model || DEFAULT_MODEL,
+        max_tokens: agent?.max_tokens || DEFAULT_MAX_TOKENS,
         system: systemPrompt,
         messages: chatMessages,
       }),
@@ -107,14 +121,20 @@ Deno.serve(async (req) => {
     const data = await res.json()
     const text = data.content?.[0]?.text ?? ''
 
-    // Both frontends read `content`; `response` kept for older callers.
     return Response.json(
-      { content: text, response: text, agent: primary, prompt_source: main.source },
+      {
+        content: text,
+        response: text,
+        agent: primary,
+        skills_applied: (skillsByAgent[primary] || [])
+          .filter((s) => !Array.isArray(skillIds) || skillIds.includes(s.id))
+          .map((s) => s.name),
+      },
       { headers: CORS }
     )
   } catch (e) {
     return Response.json(
-      { error: e instanceof Error ? e.message : 'Unknown error' },
+      { error: e instanceof Error ? e.message : 'Erro desconhecido' },
       { status: 500, headers: CORS }
     )
   }
