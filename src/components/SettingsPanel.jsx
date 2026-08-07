@@ -300,6 +300,7 @@ export default function SettingsPanel() {
   const [section, setSection] = useState('overview')
   const [linkedinGroups, setLinkedinGroups] = useState([])
   const [newGroup, setNewGroup] = useState({ id: '', name: '' })
+  const [groupError, setGroupError] = useState('')
   const [agentChatId, setAgentChatId] = useState(null)
   const [pipelineOpen, setPipelineOpen] = useState(false)
 
@@ -346,10 +347,32 @@ export default function SettingsPanel() {
     }
   }
 
+  // Accepts either a bare id or the group URL. Stripping every non-digit (the
+  // previous approach) concatenates any other number in the link — /groups/123/
+  // survives, but /groups/123/posts/456 silently becomes 123456.
+  function parseLinkedinGroupId(value) {
+    const raw = value.trim()
+    if (!raw) return null
+    const fromUrl = raw.match(/(?:linkedin\.com\/groups\/|\/groups\/)(\d+)/i)
+    if (fromUrl) return fromUrl[1]
+    if (/^\d+$/.test(raw)) return raw
+    return null
+  }
+
   function addLinkedinGroup() {
-    const id = newGroup.id.trim().replace(/\D/g, '')
+    setGroupError('')
     const name = newGroup.name.trim()
-    if (!id || !name) return
+    if (!name) return setGroupError('Dê um nome ao grupo.')
+
+    const id = parseLinkedinGroupId(newGroup.id)
+    if (!id) return setGroupError('Cole o link do grupo ou apenas o número do ID.')
+
+    const dupeId = linkedinGroups.find(g => g.id === id)
+    if (dupeId) return setGroupError(`Este grupo já está cadastrado como "${dupeId.name}".`)
+
+    const dupeName = linkedinGroups.find(g => g.name.toLowerCase() === name.toLowerCase())
+    if (dupeName) return setGroupError(`Já existe um grupo com este nome (ID ${dupeName.id}).`)
+
     saveLinkedinGroups([...linkedinGroups, { id, name }])
     setNewGroup({ id: '', name: '' })
   }
@@ -1258,9 +1281,15 @@ export default function SettingsPanel() {
                       <input value={newGroup.name} onChange={e => setNewGroup(p => ({ ...p, name: e.target.value }))}
                         placeholder="Nome do grupo (ex: SaaS Brasil)"
                         className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors" />
-                      <input value={newGroup.id} onChange={e => setNewGroup(p => ({ ...p, id: e.target.value }))}
-                        placeholder="ID do grupo (só números)"
+                      <input value={newGroup.id}
+                        onChange={e => { setNewGroup(p => ({ ...p, id: e.target.value })); setGroupError('') }}
+                        placeholder="Link do grupo ou apenas o ID"
                         className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors" />
+                      {groupError && (
+                        <p className="text-red-400 text-xs bg-red-400/10 border border-red-400/20 rounded-lg py-1.5 px-2.5">
+                          {groupError}
+                        </p>
+                      )}
                       <button onClick={addLinkedinGroup} disabled={!newGroup.id.trim() || !newGroup.name.trim()}
                         className="w-full py-2 rounded-lg text-sm font-semibold text-white bg-[#0077B5] hover:bg-[#006097] transition-colors disabled:opacity-40">
                         Adicionar grupo

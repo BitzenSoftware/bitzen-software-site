@@ -130,6 +130,45 @@ function TypingDots() {
 
 export default function AgentPipeline({ onClose }) {
   const { systems: SYSTEMS } = useProductAgents()
+
+  // Skills each stage may apply. skillSelection[role] === undefined means "all
+  // active ones", which is what the edge function does without skillIds.
+  const [stageSkills, setStageSkills] = useState({})
+  const [skillSelection, setSkillSelection] = useState({})
+  const [skillsOpen, setSkillsOpen] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    supabase
+      .from('agent_skills')
+      .select('id,name,agent_id,sort_order')
+      .in('agent_id', STAGES.map(s => s.id))
+      .eq('active', true)
+      .order('sort_order')
+      .then(({ data }) => {
+        if (cancelled) return
+        const byRole = {}
+        for (const s of data || []) (byRole[s.agent_id] ||= []).push(s)
+        setStageSkills(byRole)
+      })
+    return () => { cancelled = true }
+  }, [])
+
+  function toggleStageSkill(role, id) {
+    setSkillSelection(prev => {
+      const all = (stageSkills[role] || []).map(s => s.id)
+      const current = prev[role] ?? all
+      const next = current.includes(id) ? current.filter(x => x !== id) : [...current, id]
+      // Back to the full set: drop the override so it stays "all", including
+      // any skill added later.
+      if (next.length === all.length) {
+        const { [role]: _drop, ...rest } = prev
+        return rest
+      }
+      return { ...prev, [role]: next }
+    })
+  }
+
   const [task, setTask] = useState('')
   const [product, setProduct] = useState(null)
   const [stage, setStage] = useState('input') // input | clarifying | running | done
@@ -174,8 +213,10 @@ Avalia APENAS se o objetivo ou ângulo da tarefa está suficientemente claro par
     const messages = history.length > 0
       ? [...history, { role: 'user', content: userMsg }]
       : [{ role: 'user', content: userMsg }]
+    // Omitting skillIds applies every active skill, which is the default here.
+    const chosen = skillSelection[role]
     const { data, error } = await supabase.functions.invoke('agent-chat', {
-      body: { role, product, messages },
+      body: { role, product, messages, ...(chosen ? { skillIds: chosen } : {}) },
     })
     if (error) throw error
     return data?.content ?? 'Sem resposta'
@@ -436,6 +477,56 @@ Avalia APENAS se o objetivo ou ângulo da tarefa está suficientemente claro par
                     className="w-full bg-background border border-border rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors resize-none"
                   />
                 </div>
+                {/* Skills per stage. Collapsed because the default — all of
+                    them — is the right answer most of the time. */}
+                {Object.keys(stageSkills).length > 0 && (
+                  <div>
+                    <button onClick={() => setSkillsOpen(o => !o)}
+                      className="w-full flex items-center justify-between text-left">
+                      <span className="text-white text-sm font-semibold">Habilidades por etapa</span>
+                      <span className="text-gray-500 text-xs">
+                        {Object.keys(skillSelection).length === 0 ? 'todas' : 'personalizado'}
+                        <span className="ml-1.5">{skillsOpen ? '▾' : '▸'}</span>
+                      </span>
+                    </button>
+
+                    {skillsOpen && (
+                      <div className="mt-3 flex flex-col gap-3">
+                        {STAGES.filter(st => (stageSkills[st.id] || []).length).map(st => {
+                          const all = stageSkills[st.id].map(s => s.id)
+                          const chosen = skillSelection[st.id] ?? all
+                          return (
+                            <div key={st.id}>
+                              <p className="text-gray-500 text-[11px] uppercase tracking-wider mb-1.5">
+                                {st.name} · {chosen.length} de {all.length}
+                              </p>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {stageSkills[st.id].map(s => {
+                                  const on = chosen.includes(s.id)
+                                  return (
+                                    <button key={s.id} onClick={() => toggleStageSkill(st.id, s.id)}
+                                      className={`text-[11px] px-2 py-1 rounded-full border transition-colors ${
+                                        on ? 'border-accent-purple/60 bg-accent-purple/20 text-white'
+                                           : 'border-border text-gray-500 hover:text-gray-300'}`}>
+                                      {on ? '✓ ' : ''}{s.name}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )
+                        })}
+                        {Object.keys(skillSelection).length > 0 && (
+                          <button onClick={() => setSkillSelection({})}
+                            className="text-[11px] text-gray-500 hover:text-accent-purple self-start">
+                            Repor todas
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <button
                   onClick={startClarification}
                   disabled={!task.trim() || !product}
