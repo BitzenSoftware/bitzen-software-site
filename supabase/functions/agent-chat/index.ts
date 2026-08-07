@@ -26,14 +26,25 @@ async function sbGet<T>(path: string): Promise<T[]> {
   }
 }
 
+// Applies to every agent. Without it they pad: a request for "um texto curto"
+// comes back with a preamble, markdown headings and an offer of alternatives.
+const RESPONSE_RULES = `
+===== COMO RESPONDER =====
+- Entregue exatamente o que foi pedido, no formato e no comprimento pedidos. "Curto" significa curto; "objetivo" significa sem rodeios. Se pedirem um parágrafo, entregue um parágrafo.
+- Comece pelo conteúdo. Nada de preâmbulo do género "Aqui está o texto:", "Texto para apresentação:", nem linhas separadoras antes ou depois.
+- Não use markdown a menos que seja pedido: nada de **negrito**, ### títulos, --- separadores ou listas com marcadores quando um texto corrido serve. Escreva em prosa por omissão.
+- Termine quando o pedido estiver satisfeito. Não acrescente perguntas a oferecer variações ("Quer uma versão mais longa?", "Quer para LinkedIn?") — se o utilizador quiser outra coisa, pede.
+- Não repita o pedido de volta nem explique o que vai fazer antes de o fazer.`
+
 // An agent's prompt is its base identity plus the skills selected for this
 // conversation. With no selection, every active skill is applied.
 function compose(base: string, skills: Skill[]): string {
-  if (!skills.length) return base
+  const head = `${base}\n${RESPONSE_RULES}`
+  if (!skills.length) return head
   const blocks = skills
     .map((s) => `### ${s.name}\n${s.content}`)
     .join('\n\n')
-  return `${base}\n\n===== HABILIDADES ATIVAS NESTA CONVERSA =====\nAplique todas as habilidades abaixo. Se duas derem instruções conflituantes de tom ou formato, a que aparecer primeiro prevalece.\n\n${blocks}`
+  return `${head}\n\n===== HABILIDADES ATIVAS NESTA CONVERSA =====\nAplique todas as habilidades abaixo. Se duas derem instruções conflituantes de tom ou formato, a que aparecer primeiro prevalece. Uma habilidade pode sobrepor-se às regras de resposta acima quando for explícita sobre formato.\n\n${blocks}`
 }
 
 Deno.serve(async (req) => {
