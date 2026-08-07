@@ -6,8 +6,9 @@ import AgentPipeline from './AgentPipeline'
 import SkillsManager from './SkillsManager'
 import { adminData } from '../lib/adminData'
 
-const ADMIN_USER = 'admin'
-const ADMIN_PASS = 'bitzen@1987Admin'
+// Credentials used to live here as constants. Anything in this file ships in
+// the public bundle, so they were readable by any visitor — login now goes
+// through Supabase Auth and nothing secret remains client-side.
 
 const SOCIAL_LABELS = {
   instagram: 'Instagram',
@@ -208,17 +209,26 @@ function AddButton({ onClick, label }) {
 
 function LoginForm({ onSuccess }) {
   const [form, setForm] = useState({ user: '', pass: '' })
-  const [error, setError] = useState(false)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
-  function handleSubmit(e) {
+  // Verified by Supabase Auth on the server. The previous check compared
+  // against constants compiled into the public bundle, which anyone could read.
+  async function handleSubmit(e) {
     e.preventDefault()
-    if (form.user === ADMIN_USER && form.pass === ADMIN_PASS) {
-      sessionStorage.setItem('bitzen_auth', '1')
-      onSuccess()
-    } else {
-      setError(true)
+    setBusy(true)
+    setError('')
+    const { error: err } = await supabase.auth.signInWithPassword({
+      email: form.user.trim(),
+      password: form.pass,
+    })
+    setBusy(false)
+    if (err) {
+      setError(err.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos' : err.message)
       setForm((p) => ({ ...p, pass: '' }))
+      return
     }
+    onSuccess()
   }
 
   return (
@@ -232,11 +242,11 @@ function LoginForm({ onSuccess }) {
       <p className="text-gray-500 text-sm text-center mb-6">Acesso restrito à equipe Bitzen</p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
         <div>
-          <label className="block text-gray-400 text-xs font-medium mb-1.5">Usuário</label>
-          <input type="text" autoComplete="username" required value={form.user}
+          <label className="block text-gray-400 text-xs font-medium mb-1.5">E-mail</label>
+          <input type="email" autoComplete="username" required value={form.user}
             onChange={(e) => setForm((p) => ({ ...p, user: e.target.value }))}
             className="w-full bg-background border border-border rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-accent-purple/60 transition-colors"
-            placeholder="Digite seu usuário" />
+            placeholder="seu@email.com" />
         </div>
         <div>
           <label className="block text-gray-400 text-xs font-medium mb-1.5">Senha</label>
@@ -247,10 +257,10 @@ function LoginForm({ onSuccess }) {
         </div>
         {error && (
           <p className="text-red-400 text-xs text-center bg-red-400/10 border border-red-400/20 rounded-lg py-2">
-            Usuário ou senha incorretos
+            {error}
           </p>
         )}
-        <button type="submit" className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-accent-purple to-accent-blue hover:opacity-90 transition-opacity mt-1">
+        <button type="submit" disabled={busy} className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-accent-purple to-accent-blue hover:opacity-90 transition-opacity mt-1 disabled:opacity-50">
           Acessar painel
         </button>
       </form>
@@ -275,7 +285,18 @@ export default function SettingsPanel() {
   const { logo, setLogo, apps, setApps, blogPosts, setBlogPosts, ebooks, setEbooks, contactEmail, setContactEmail, socialLinks, setSocialLinks, dbError, setDbError, loading } = useSettings()
 
   const [open, setOpen] = useState(false)
-  const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem('bitzen_auth') === '1')
+  // Authentication is a real Supabase session now, restored on load and kept in
+  // sync so a logout or an expired token closes the panel.
+  const [authenticated, setAuthenticated] = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setAuthenticated(Boolean(data?.session)))
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setAuthenticated(Boolean(session))
+    })
+    return () => sub?.subscription?.unsubscribe()
+  }, [])
+
   const [section, setSection] = useState('overview')
   const [linkedinGroups, setLinkedinGroups] = useState([])
   const [newGroup, setNewGroup] = useState({ id: '', name: '' })
@@ -384,7 +405,7 @@ export default function SettingsPanel() {
   }
 
   function logout() {
-    sessionStorage.removeItem('bitzen_auth')
+    supabase.auth.signOut()
     setAuthenticated(false)
     closePanel()
   }

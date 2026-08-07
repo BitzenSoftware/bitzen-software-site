@@ -1,19 +1,14 @@
 import { useEffect, useState } from 'react'
-import { getAdminToken, setAdminToken } from '../lib/adminData'
+import { getAdminToken, setAdminToken, adminHeaders } from '../lib/adminData'
 
 const SB_URL = (import.meta.env.VITE_SUPABASE_URL || '').trim()
 const SB_KEY = (import.meta.env.VITE_SUPABASE_KEY || '').trim()
 const FN = `${SB_URL}/functions/v1/agent-skills`
 
-async function callFn(method, { token, body, query } = {}) {
-  const res = await fetch(`${FN}${query || ''}`, {
+async function callFn(method, { body, query } = {}) {
+  const res = await fetch(`${FN}${query || ""}`, {
     method,
-    headers: {
-      apikey: SB_KEY,
-      Authorization: `Bearer ${SB_KEY}`,
-      'Content-Type': 'application/json',
-      ...(token ? { 'x-admin-token': token } : {}),
-    },
+    headers: await adminHeaders(),
     ...(body ? { body: JSON.stringify(body) } : {}),
   })
   const json = await res.json().catch(() => ({}))
@@ -37,7 +32,7 @@ function SkillEditor({ agentId, skill, token, onDone, onCancel }) {
     if (!form.name.trim() || !form.content.trim()) return setErr('Nome e conteúdo são obrigatórios.')
     setBusy(true); setErr(null)
     try {
-      await callFn('POST', { token, body: { kind: 'skill', id: skill?.id, agent_id: agentId, ...form } })
+      await callFn('POST', { body: { kind: 'skill', id: skill?.id, agent_id: agentId, ...form } })
       onDone()
     } catch (e) { setErr(e.message) } finally { setBusy(false) }
   }
@@ -100,9 +95,10 @@ export default function SkillsManager() {
     setMsg(null)
   }
 
+  // The signed-in session authorises writes. The token is only a fallback, so
+  // it is stored when present but never required.
   function requireToken() {
-    if (!token.trim()) { setMsg({ type: 'error', text: 'Informe o token de administração.' }); return false }
-    setAdminToken(token)
+    setAdminToken(token.trim())
     return true
   }
 
@@ -110,7 +106,7 @@ export default function SkillsManager() {
     if (!requireToken()) return
     setBusy(true); setMsg(null)
     try {
-      await callFn('POST', { token, body: { kind: 'agent', agent_id: selected.agent_id, base_prompt: base } })
+      await callFn('POST', { body: { kind: 'agent', agent_id: selected.agent_id, base_prompt: base } })
       setMsg({ type: 'ok', text: 'Identidade do agente gravada.' })
       await load(selected.agent_id)
     } catch (e) { setMsg({ type: 'error', text: e.message }) } finally { setBusy(false) }
@@ -121,7 +117,7 @@ export default function SkillsManager() {
     if (!confirm(`Apagar a habilidade "${skill.name}"?`)) return
     setBusy(true); setMsg(null)
     try {
-      await callFn('DELETE', { token, query: `?skill_id=${encodeURIComponent(skill.id)}` })
+      await callFn('DELETE', { query: `?skill_id=${encodeURIComponent(skill.id)}` })
       await load(selected.agent_id)
     } catch (e) { setMsg({ type: 'error', text: e.message }) } finally { setBusy(false) }
   }
@@ -138,14 +134,18 @@ export default function SkillsManager() {
         Agentes de produto são criados automaticamente quando adiciona uma app.
       </p>
 
-      <div className="mb-5">
-        <label className="block text-gray-400 text-xs font-medium mb-1.5">Token de administração</label>
-        <input type="password" value={token} onChange={e => setToken(e.target.value)}
-          placeholder="Necessário para gravar" className={input} />
-        <p className="text-gray-600 text-[11px] mt-1.5">
-          Secret <code className="text-gray-500">ADMIN_TOKEN</code> do Supabase. Guardado só nesta sessão — também usado para gravar produtos, blog e ebooks.
-        </p>
-      </div>
+      <details className="mb-5">
+        <summary className="text-gray-600 text-xs cursor-pointer hover:text-gray-400">
+          Token de emergência (não é necessário)
+        </summary>
+        <div className="mt-2">
+          <input type="password" value={token} onChange={e => setToken(e.target.value)}
+            placeholder="ADMIN_TOKEN" className={input} />
+          <p className="text-gray-600 text-[11px] mt-1.5">
+            A sua sessão de login já autoriza tudo. Use este campo apenas se a autenticação falhar.
+          </p>
+        </div>
+      </details>
 
       {loading ? <p className="text-gray-500 text-sm">A carregar…</p> : (
         <>
@@ -171,6 +171,15 @@ export default function SkillsManager() {
               </div>
             </div>
           ))}
+
+          {!selected && (
+            <div className="border-t border-border pt-5 text-center py-8">
+              <p className="text-gray-400 text-sm">Selecione um agente acima</p>
+              <p className="text-gray-600 text-xs mt-1">
+                para editar a identidade dele e criar habilidades
+              </p>
+            </div>
+          )}
 
           {selected && (
             <div className="border-t border-border pt-5">
