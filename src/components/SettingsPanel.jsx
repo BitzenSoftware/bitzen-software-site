@@ -624,8 +624,9 @@ export default function SettingsPanel() {
               </button>
             </div>
 
-            {/* Section content */}
-            <div className="flex-1 overflow-y-auto">
+            {/* Section content. The skills manager owns its own two-column
+                scrolling, so it gets a fixed-height box instead of this one. */}
+            <div className={section === 'skills' ? 'flex-1 min-h-0 overflow-hidden' : 'flex-1 overflow-y-auto'}>
 
               {/* Visão Geral */}
               {section === 'overview' && (
