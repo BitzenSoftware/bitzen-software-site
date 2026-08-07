@@ -6,6 +6,7 @@ import AgentPipeline from './AgentPipeline'
 import SkillsManager from './SkillsManager'
 import { adminData } from '../lib/adminData'
 import { useAgents } from '../lib/useProductAgents'
+import ErrorBoundary from './ErrorBoundary'
 
 // Credentials used to live here as constants. Anything in this file ships in
 // the public bundle, so they were readable by any visitor — login now goes
@@ -1322,16 +1323,20 @@ export default function SettingsPanel() {
 
       {/* AgentChat modal */}
       {agentChatId && (
-        <AgentChat
-          agentId={agentChatId}
-          agentLogo={getAgentLogo(agentChatId)}
-          onClose={() => setAgentChatId(null)}
-        />
+        <ErrorBoundary label="chat do agente">
+          <AgentChat
+            agentId={agentChatId}
+            agentLogo={getAgentLogo(agentChatId)}
+            onClose={() => setAgentChatId(null)}
+          />
+        </ErrorBoundary>
       )}
 
       {/* Pipeline modal */}
       {pipelineOpen && (
-        <AgentPipeline onClose={() => setPipelineOpen(false)} />
+        <ErrorBoundary label="pipeline">
+          <AgentPipeline onClose={() => setPipelineOpen(false)} />
+        </ErrorBoundary>
       )}
     </>
   )

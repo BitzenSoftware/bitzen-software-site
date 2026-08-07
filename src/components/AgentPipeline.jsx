@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { useProductAgents } from '../lib/useProductAgents'
 
 // Products come from the agents table via useProductAgents — a hardcoded list
 // here meant an app added in the panel never appeared in the pipeline.
