@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { AGENT_DEFAULTS } from "../_shared/agent-defaults.ts"
+import { checkAdmin } from "../_shared/admin-auth.ts"
 
 // CRUD for agents and their skills. Reads are open (the panel needs them and
 // the tables are anon-readable); writes require ADMIN_TOKEN, a Supabase secret.
@@ -26,15 +27,8 @@ async function sb(path: string, init?: RequestInit) {
   return text ? JSON.parse(text) : null
 }
 
-function authorized(req: Request): boolean {
-  const expected = Deno.env.get('ADMIN_TOKEN')
-  if (!expected) return false
-  const got = req.headers.get('x-admin-token') ?? ''
-  if (got.length !== expected.length) return false
-  let diff = 0
-  for (let i = 0; i < expected.length; i++) diff |= got.charCodeAt(i) ^ expected.charCodeAt(i)
-  return diff === 0
-}
+// Authorization lives in _shared/admin-auth.ts: a signed-in admin session, or
+// the ADMIN_TOKEN secret as a break-glass fallback.
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS })
@@ -62,8 +56,9 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (!authorized(req)) {
-      return Response.json({ error: 'Não autorizado' }, { status: 401, headers: CORS })
+    const admin = await checkAdmin(req)
+    if (!admin.ok) {
+      return Response.json({ error: admin.reason }, { status: 401, headers: CORS })
     }
 
     const url = new URL(req.url)

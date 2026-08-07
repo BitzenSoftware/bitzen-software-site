@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { checkAdmin } from "../_shared/admin-auth.ts"
 
 // Write proxy for the admin panel. The anon key can no longer write to these
 // tables (see migration 20260806b), so the panel routes writes here and this
@@ -17,23 +18,17 @@ const WRITABLE = new Set(['settings', 'apps', 'blog_posts', 'ebooks', 'testimoni
 const SB_URL = () => Deno.env.get('SUPABASE_URL')!
 const SB_KEY = () => Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-function authorized(req: Request): boolean {
-  const expected = Deno.env.get('ADMIN_TOKEN')
-  if (!expected) return false
-  const got = req.headers.get('x-admin-token') ?? ''
-  if (got.length !== expected.length) return false
-  let diff = 0
-  for (let i = 0; i < expected.length; i++) diff |= got.charCodeAt(i) ^ expected.charCodeAt(i)
-  return diff === 0
-}
+// Authorization lives in _shared/admin-auth.ts: a signed-in admin session, or
+// the ADMIN_TOKEN secret as a break-glass fallback.
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS })
   if (req.method !== 'POST') {
     return Response.json({ error: 'Método não suportado' }, { status: 405, headers: CORS })
   }
-  if (!authorized(req)) {
-    return Response.json({ error: 'Não autorizado' }, { status: 401, headers: CORS })
+  const admin = await checkAdmin(req)
+  if (!admin.ok) {
+    return Response.json({ error: admin.reason }, { status: 401, headers: CORS })
   }
 
   try {
