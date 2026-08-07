@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import AgentChat from './AgentChat'
 import AgentPipeline from './AgentPipeline'
 import SkillsManager from './SkillsManager'
+import { adminData } from '../lib/adminData'
 
 const ADMIN_USER = 'admin'
 const ADMIN_PASS = 'bitzen@1987Admin'
@@ -317,9 +318,11 @@ export default function SettingsPanel() {
   async function saveLinkedinGroups(groups) {
     setLinkedinGroups(groups)
     const val = JSON.stringify(groups)
-    const { data } = await supabase.from('settings').select('id').eq('key', 'linkedin_groups').maybeSingle()
-    if (data) await supabase.from('settings').update({ value: val }).eq('key', 'linkedin_groups')
-    else await supabase.from('settings').insert({ key: 'linkedin_groups', value: val })
+    try {
+      await adminData.upsert('settings', { key: 'linkedin_groups', value: val })
+    } catch (e) {
+      window.alert(e.message)
+    }
   }
 
   function addLinkedinGroup() {
@@ -353,14 +356,22 @@ export default function SettingsPanel() {
   }
 
   async function approveTestimonial(id) {
-    await supabase.from('testimonials').update({ approved: true }).eq('id', id)
-    setTestimonials(p => p.map(t => t.id === id ? { ...t, approved: true } : t))
+    try {
+      await adminData.update('testimonials', { approved: true }, { id })
+      setTestimonials(p => p.map(t => t.id === id ? { ...t, approved: true } : t))
+    } catch (e) {
+      window.alert(e.message)
+    }
   }
 
   async function deleteTestimonial(id) {
     if (!window.confirm('Remover este comentário?')) return
-    await supabase.from('testimonials').delete().eq('id', id)
-    setTestimonials(p => p.filter(t => t.id !== id))
+    try {
+      await adminData.remove('testimonials', { id })
+      setTestimonials(p => p.filter(t => t.id !== id))
+    } catch (e) {
+      window.alert(e.message)
+    }
   }
 
   function closePanel() {

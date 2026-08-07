@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { adminData } from '../lib/adminData'
 
 const DEFAULT_EMAIL = 'contato@bitzensoftware.com'
 const DEFAULT_SOCIAL = {
@@ -95,109 +96,87 @@ export function SettingsProvider({ children }) {
     }
   }
 
+  // Writes go through adminData (the admin-data edge function). RLS no longer
+  // lets the anon key write to these tables, so a missing admin token surfaces
+  // here as an error rather than a silent no-op.
+  async function saveSetting(key, value, label) {
+    try {
+      await adminData.upsert('settings', { key, value })
+    } catch (e) {
+      setDbError(`Erro ao salvar ${label}: ${e.message}`)
+    }
+  }
+
   async function setLogo(url) {
     _setLogo(url)
-    const { error } = await supabase.from('settings').upsert({ key: 'logo', value: url })
-    if (error) setDbError(`Erro ao salvar logo: ${error.message}`)
+    await saveSetting('logo', url, 'logo')
   }
 
   async function setContactEmail(email) {
     _setContactEmail(email)
-    const { error } = await supabase.from('settings').upsert({ key: 'contact_email', value: email })
-    if (error) setDbError(`Erro ao salvar email: ${error.message}`)
+    await saveSetting('contact_email', email, 'email')
   }
 
   async function setSocialLinks(links) {
     _setSocialLinks(links)
-    const { error } = await supabase.from('settings').upsert({ key: 'social_links', value: links })
-    if (error) setDbError(`Erro ao salvar redes sociais: ${error.message}`)
+    await saveSetting('social_links', links, 'redes sociais')
+  }
+
+  // Replace the whole collection: upsert what remains, delete what's gone.
+  async function syncCollection(table, label, items, toRow) {
+    const { data: current, error: fetchErr } = await supabase.from(table).select('id')
+    if (fetchErr) { setDbError(`Erro ao ler ${label}: ${fetchErr.message}`); return }
+
+    const newIds = items.map(i => String(i.id))
+    const toDelete = (current || []).map(r => r.id).filter(id => !newIds.includes(id))
+
+    try {
+      if (items.length > 0) await adminData.upsert(table, items.map(toRow))
+      if (toDelete.length > 0) await adminData.remove(table, { id: toDelete })
+    } catch (e) {
+      setDbError(`Erro ao salvar ${label}: ${e.message}`)
+    }
   }
 
   async function setApps(newApps) {
     _setApps(newApps)
-    const { data: current, error: fetchErr } = await supabase.from('apps').select('id')
-    if (fetchErr) { setDbError(`Erro ao ler apps: ${fetchErr.message}`); return }
-
-    const currentIds = (current || []).map(a => a.id)
-    const newIds = newApps.map(a => String(a.id))
-    const toDelete = currentIds.filter(id => !newIds.includes(id))
-
-    if (newApps.length > 0) {
-      const { error: upsertErr } = await supabase.from('apps').upsert(
-        newApps.map((a, i) => ({
-          id: String(a.id),
-          name: a.name,
-          description: a.description || '',
-          description_en: a.descriptionEn || '',
-          logo: a.logo || '',
-          buy_url: a.buyUrl || '',
-          badge: a.badge || 'Web App',
-          sort_order: i,
-        }))
-      )
-      if (upsertErr) { setDbError(`Erro ao salvar apps: ${upsertErr.message}`); return }
-    }
-    if (toDelete.length > 0) {
-      const { error: delErr } = await supabase.from('apps').delete().in('id', toDelete)
-      if (delErr) setDbError(`Erro ao remover apps: ${delErr.message}`)
-    }
+    await syncCollection('apps', 'apps', newApps, (a, i) => ({
+      id: String(a.id),
+      name: a.name,
+      description: a.description || '',
+      description_en: a.descriptionEn || '',
+      logo: a.logo || '',
+      buy_url: a.buyUrl || '',
+      badge: a.badge || 'Web App',
+      sort_order: i,
+    }))
   }
 
   async function setBlogPosts(newPosts) {
     _setBlogPosts(newPosts)
-    const { data: current, error: fetchErr } = await supabase.from('blog_posts').select('id')
-    if (fetchErr) { setDbError(`Erro ao ler posts: ${fetchErr.message}`); return }
-
-    const currentIds = (current || []).map(p => p.id)
-    const newIds = newPosts.map(p => String(p.id))
-    const toDelete = currentIds.filter(id => !newIds.includes(id))
-
-    if (newPosts.length > 0) {
-      const { error: upsertErr } = await supabase.from('blog_posts').upsert(
-        newPosts.map(p => ({
-          id: String(p.id),
-          title: p.title,
-          title_en: p.titleEn || '',
-          date: p.date || '',
-          excerpt: p.excerpt || '',
-          excerpt_en: p.excerptEn || '',
-          slug: p.slug || p.title.toLowerCase().replace(/\s+/g, '-'),
-        }))
-      )
-      if (upsertErr) { setDbError(`Erro ao salvar posts: ${upsertErr.message}`); return }
-    }
-    if (toDelete.length > 0) {
-      await supabase.from('blog_posts').delete().in('id', toDelete)
-    }
+    await syncCollection('blog_posts', 'posts', newPosts, p => ({
+      id: String(p.id),
+      title: p.title,
+      title_en: p.titleEn || '',
+      date: p.date || '',
+      excerpt: p.excerpt || '',
+      excerpt_en: p.excerptEn || '',
+      slug: p.slug || p.title.toLowerCase().replace(/\s+/g, '-'),
+    }))
   }
 
   async function setEbooks(newEbooks) {
     _setEbooks(newEbooks)
-    const { data: current, error: fetchErr } = await supabase.from('ebooks').select('id')
-    if (fetchErr) { setDbError(`Erro ao ler ebooks: ${fetchErr.message}`); return }
-
-    const currentIds = (current || []).map(e => e.id)
-    const newIds = newEbooks.map(e => String(e.id))
-    const toDelete = currentIds.filter(id => !newIds.includes(id))
-
-    if (newEbooks.length > 0) {
-      const { error: upsertErr } = await supabase.from('ebooks').upsert(
-        newEbooks.map((e, i) => ({
-          id: String(e.id),
-          title: e.title,
-          description: e.description || '',
-          price: e.price || '',
-          platform: e.platform || 'hotmart',
-          buy_url: e.buyUrl || '',
-          cover: e.cover || '',
-          sort_order: i,
-        }))
-      )
-      if (upsertErr) { setDbError(`Erro ao salvar ebooks: ${upsertErr.message}`); return }
-    }
-    if (toDelete.length > 0) {
-      await supabase.from('ebooks').delete().in('id', toDelete)
-    }
+    await syncCollection('ebooks', 'ebooks', newEbooks, (e, i) => ({
+      id: String(e.id),
+      title: e.title,
+      description: e.description || '',
+      price: e.price || '',
+      platform: e.platform || 'hotmart',
+      buy_url: e.buyUrl || '',
+      cover: e.cover || '',
+      sort_order: i,
+    }))
   }
 
   return (
