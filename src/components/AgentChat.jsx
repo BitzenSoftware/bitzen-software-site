@@ -83,7 +83,9 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
   // which is what the edge function does when skillIds is absent.
   const [skills, setSkills] = useState([])
   const [activeSkills, setActiveSkills] = useState(null) // null = todas
-  const skillOwner = agent.isMultiSystem ? agentId : agentId
+  // Always the agent's own skills. For a functional agent the chosen product
+  // contributes its prompt as context, but not its skill list.
+  const skillOwner = agentId
 
   useEffect(() => {
     let cancelled = false
@@ -323,26 +325,46 @@ export default function AgentChat({ agentId, agentLogo, onClose }) {
           {/* Skill picker — which habilidades this conversation applies */}
           {skills.length > 0 && (
             <div className="px-4 py-2.5 bg-background border-b border-border flex-shrink-0">
+              <div className="flex items-center justify-between gap-3 mb-1.5">
+                <span className="text-gray-600 text-[11px] uppercase tracking-wider">
+                  Habilidades · {selectedSkillIds.length} de {skills.length}
+                </span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button onClick={() => setActiveSkills(null)}
+                    disabled={selectedSkillIds.length === skills.length}
+                    className="text-[11px] text-gray-500 hover:text-accent-purple disabled:opacity-30 disabled:hover:text-gray-500 transition-colors">
+                    Todas
+                  </button>
+                  <span className="text-gray-700 text-[11px]">·</span>
+                  <button onClick={() => setActiveSkills([])}
+                    disabled={selectedSkillIds.length === 0}
+                    className="text-[11px] text-gray-500 hover:text-accent-purple disabled:opacity-30 disabled:hover:text-gray-500 transition-colors">
+                    Nenhuma
+                  </button>
+                </div>
+              </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-gray-600 text-[11px] uppercase tracking-wider mr-1">Habilidades</span>
                 {skills.map(s => {
                   const on = selectedSkillIds.includes(s.id)
                   return (
                     <button key={s.id} onClick={() => toggleSkill(s.id)} title={s.description || s.name}
-                      className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+                      className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors flex items-center gap-1.5 ${
                         on ? 'border-accent-purple/60 bg-accent-purple/20 text-white'
-                           : 'border-border text-gray-500 hover:text-gray-300'}`}>
-                      {on ? '✓ ' : ''}{s.name}
+                           : 'border-border text-gray-500 hover:border-gray-600 hover:text-gray-300'}`}>
+                      <span className={`w-3 h-3 rounded-sm border flex items-center justify-center text-[9px] leading-none ${
+                        on ? 'bg-accent-purple border-accent-purple text-white' : 'border-gray-600'}`}>
+                        {on ? '✓' : ''}
+                      </span>
+                      {s.name}
                     </button>
                   )
                 })}
-                {activeSkills !== null && (
-                  <button onClick={() => setActiveSkills(null)}
-                    className="text-[11px] text-gray-600 hover:text-gray-400 underline underline-offset-2 ml-1">
-                    todas
-                  </button>
-                )}
               </div>
+              {selectedSkillIds.length === 0 && (
+                <p className="text-amber-400/70 text-[11px] mt-1.5">
+                  Sem habilidades — o agente responde só com a identidade dele.
+                </p>
+              )}
             </div>
           )}
 
