@@ -1,12 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-const SYSTEMS = [
-  { id: 'agendafacil', name: 'Agenda Fácil', color: 'from-blue-500 to-cyan-400' },
-  { id: 'clockly', name: 'Clockly', color: 'from-indigo-500 to-purple-600' },
-  { id: 'ritmowork', name: 'RitmoWork', color: 'from-violet-500 to-purple-500' },
-  { id: 'vinculo', name: 'Vínculo', color: 'from-teal-500 to-emerald-400' },
-]
+// Products come from the agents table via useProductAgents — a hardcoded list
+// here meant an app added in the panel never appeared as a target.
 
 const AGENTS = {
   agendafacil: {
@@ -70,6 +66,7 @@ const LI_ICON = (
 )
 
 export default function AgentChat({ agentId, agentLogo, onClose }) {
+  const { systems: SYSTEMS } = useProductAgents()
   const agent = AGENTS[agentId]
   const [selectedSystem, setSelectedSystem] = useState(null)
   const [messages, setMessages] = useState(

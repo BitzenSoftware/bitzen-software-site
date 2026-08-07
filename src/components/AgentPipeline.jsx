@@ -1,12 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-const SYSTEMS = [
-  { id: 'agendafacil', name: 'Agenda Fácil', color: 'from-blue-500 to-cyan-400' },
-  { id: 'clockly', name: 'Clockly', color: 'from-indigo-500 to-purple-600' },
-  { id: 'ritmowork', name: 'RitmoWork', color: 'from-violet-500 to-purple-500' },
-  { id: 'vinculo', name: 'Vínculo', color: 'from-teal-500 to-emerald-400' },
-]
+// Products come from the agents table via useProductAgents — a hardcoded list
+// here meant an app added in the panel never appeared in the pipeline.
 
 const STAGES = [
   { id: 'pesquisador', name: 'Pesquisador', color: 'from-amber-500 to-orange-500' },
@@ -133,6 +129,7 @@ function TypingDots() {
 }
 
 export default function AgentPipeline({ onClose }) {
+  const { systems: SYSTEMS } = useProductAgents()
   const [task, setTask] = useState('')
   const [product, setProduct] = useState(null)
   const [stage, setStage] = useState('input') // input | clarifying | running | done

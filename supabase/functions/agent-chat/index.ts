@@ -38,8 +38,10 @@ const RESPONSE_RULES = `
 
 // An agent's prompt is its base identity plus the skills selected for this
 // conversation. With no selection, every active skill is applied.
-function compose(base: string, skills: Skill[]): string {
-  const head = `${base}\n${RESPONSE_RULES}`
+// withRules is false for the product-context block, which is appended to a
+// functional agent's prompt that already carries the rules once.
+function compose(base: string, skills: Skill[], withRules = true): string {
+  const head = withRules ? `${base}\n${RESPONSE_RULES}` : base
   if (!skills.length) return head
   const blocks = skills
     .map((s) => `### ${s.name}\n${s.content}`)
@@ -69,7 +71,7 @@ Deno.serve(async (req) => {
     const skillsByAgent: Record<string, Skill[]> = {}
     for (const s of skillRows) (skillsByAgent[s.agent_id] ||= []).push(s)
 
-    function promptFor(id: string, applySelection: boolean): string | null {
+    function promptFor(id: string, applySelection: boolean, withRules = true): string | null {
       const agent = agents[id]
       const base = agent?.base_prompt?.trim() || AGENT_DEFAULTS[id]?.prompt
       if (!base) return null
@@ -78,7 +80,7 @@ Deno.serve(async (req) => {
       if (applySelection && Array.isArray(skillIds)) {
         skills = skills.filter((s) => skillIds.includes(s.id))
       }
-      return compose(base, skills)
+      return compose(base, skills, withRules)
     }
 
     const mainPrompt = promptFor(primary, true)
@@ -93,7 +95,7 @@ Deno.serve(async (req) => {
     // tone. Its skills are not filtered by the caller's selection.
     let systemPrompt = mainPrompt
     if (role && product && product !== role) {
-      const ctx = promptFor(product, false)
+      const ctx = promptFor(product, false, false)
       if (ctx) systemPrompt += `\n\n===== CONTEXTO DO PRODUTO EM CAUSA =====\n${ctx}`
     }
 
