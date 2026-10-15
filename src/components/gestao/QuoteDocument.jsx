@@ -77,7 +77,9 @@ function paragraphs(text) {
 
 export default function QuoteDocument({ profile, quote, items, client }) {
   const brand = /^#[0-9a-f]{6}$/i.test(profile.brand_color) ? profile.brand_color : INK
-  const cur = profile.currency || 'BRL'
+  // O documento usa a moeda do cliente (cada cliente pode ser orçado numa
+  // moeda diferente); sem cliente, cai para a moeda padrão da empresa.
+  const cur = client?.currency || profile.currency || 'BRL'
   const sum = totals(items, quote.discount)
   const code = quoteCode(quote.kind, quote.number, quote.issue_date)
   const kindLabel = quote.kind === 'proposta' ? 'PROPOSTA COMERCIAL' : 'ORÇAMENTO'

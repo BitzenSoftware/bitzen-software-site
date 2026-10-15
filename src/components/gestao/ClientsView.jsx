@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { emptyClient } from '../../lib/gestao/data'
-import { AddButton, Button, Empty, Field, Input, Spinner, Textarea } from './ui'
+import { money } from '../../lib/gestao/format'
+import { AddButton, Button, Empty, Field, Input, Select, Spinner, Textarea } from './ui'
 
 function ClientForm({ initial, onSave, onCancel }) {
   const [form, setForm] = useState(initial ?? { ...emptyClient })
@@ -33,6 +34,16 @@ function ClientForm({ initial, onSave, onCancel }) {
           <Field label="UF"><Input value={form.state} onChange={set('state')} maxLength={20} /></Field>
           <Field label="CEP"><Input value={form.zip} onChange={set('zip')} /></Field>
         </div>
+        <Field label="Moeda" hint="Moeda em que os orçamentos deste cliente são feitos.">
+          <Select value={form.currency} onChange={set('currency')}>
+            <option value="BRL">Real (R$)</option>
+            <option value="EUR">Euro (€)</option>
+            <option value="USD">Dólar (US$)</option>
+          </Select>
+        </Field>
+        <Field label="Valor por hora" hint="Usado para preencher o valor do tópico ao informar as horas.">
+          <Input type="number" min={0} step="0.01" value={form.hourly_rate || ''} onChange={set('hourly_rate')} className="text-right tabular-nums" />
+        </Field>
         <Field label="Observações internas" className="sm:col-span-2">
           <Textarea rows={2} value={form.notes} onChange={set('notes')} />
         </Field>
@@ -69,7 +80,7 @@ export default function ClientsView() {
   }, [clients, search])
 
   async function handleAdd(data) {
-    const { error } = await supabase.from('clients').insert(data)
+    const { error } = await supabase.from('clients').insert({ ...data, hourly_rate: Number(data.hourly_rate) || 0 })
     if (error) return setError(error.message)
     setAdding(false)
     load()
@@ -77,7 +88,7 @@ export default function ClientsView() {
 
   async function handleEdit(data) {
     const { id: _id, created_at: _c, ...fields } = data
-    const { error } = await supabase.from('clients').update(fields).eq('id', editingId)
+    const { error } = await supabase.from('clients').update({ ...fields, hourly_rate: Number(fields.hourly_rate) || 0 }).eq('id', editingId)
     if (error) return setError(error.message)
     setEditingId(null)
     load()
@@ -120,6 +131,11 @@ export default function ClientsView() {
                     <p className="text-gray-500 text-xs truncate">{[c.trade_name, c.document, [c.city, c.state].filter(Boolean).join('/')].filter(Boolean).join(' · ') || '—'}</p>
                   </button>
                 </div>
+                {Number(c.hourly_rate) > 0 && (
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full border bg-accent-blue/15 text-accent-blue border-accent-blue/20 flex-shrink-0 whitespace-nowrap">
+                    {money(c.hourly_rate, c.currency)}/h
+                  </span>
+                )}
                 <div className="flex gap-0.5 flex-shrink-0">
                   <Button size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setAdding(false) }}>Editar</Button>
                   <Button size="sm" variant="danger" onClick={() => handleDelete(c)}>Excluir</Button>

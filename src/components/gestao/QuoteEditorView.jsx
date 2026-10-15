@@ -7,8 +7,6 @@ import { Button, Card, Field, Input, Select, Spinner, Textarea } from './ui'
 const blankItem = (position) => ({ position, title: '', description: '', hours: 0, amount: 0 })
 
 export default function QuoteEditorView({ id, companyProfile, onBack, onSaved, onOpenDocument }) {
-  const currency = companyProfile?.currency ?? 'BRL'
-
   const [clients, setClients] = useState([])
   const [form, setForm] = useState(null)
   const [items, setItems] = useState([])
@@ -54,11 +52,21 @@ export default function QuoteEditorView({ id, companyProfile, onBack, onSaved, o
 
   const client = useMemo(() => clients.find((c) => c.id === form?.client_id) ?? null, [clients, form?.client_id])
   const sum = useMemo(() => totals(items, form?.discount), [items, form?.discount])
+  // A moeda do documento segue a do cliente selecionado — cada cliente pode
+  // ser orçado numa moeda diferente (BRL/EUR/USD).
+  const currency = client?.currency || companyProfile?.currency || 'BRL'
+  const hourlyRate = Number(client?.hourly_rate) || 0
 
   if (!form) return msg ? <p className="text-red-400 text-sm">{msg.text}</p> : <Spinner />
 
   const setF = (k, v) => { setForm((f) => ({ ...f, [k]: v })); setDirty(true) }
   const setItem = (idx, patch) => { setItems((list) => list.map((it, i) => (i === idx ? { ...it, ...patch } : it))); setDirty(true) }
+
+  // Preenche o valor do tópico com horas × valor/hora do cliente. O campo
+  // continua editável para quem quiser ajustar manualmente depois.
+  const setItemHours = (idx, hoursValue) => {
+    setItem(idx, hourlyRate ? { hours: hoursValue, amount: Math.round(hoursValue * hourlyRate * 100) / 100 } : { hours: hoursValue })
+  }
 
   const move = (idx, dir) => {
     setItems((list) => {
@@ -161,6 +169,8 @@ export default function QuoteEditorView({ id, companyProfile, onBack, onSaved, o
                 <Info label="E-mail" value={client.email} />
                 <Info label="Telefone" value={client.phone} />
                 <Info label="Endereço" value={joinAddress(client)} />
+                <Info label="Moeda do orçamento" value={client.currency} />
+                <Info label="Valor por hora" value={client.hourly_rate ? `${money(client.hourly_rate, client.currency)}/h` : '—'} />
               </dl>
             )}
           </Card>
@@ -198,9 +208,9 @@ export default function QuoteEditorView({ id, companyProfile, onBack, onSaved, o
                       <Input value={it.title} onChange={(e) => setItem(idx, { title: e.target.value })} placeholder="Ex.: Desenvolvimento do app" />
                     </Field>
                     <Field label="Horas">
-                      <Input type="number" min={0} step="0.5" value={it.hours || ''} onChange={(e) => setItem(idx, { hours: Number(e.target.value) })} className="text-right tabular-nums" />
+                      <Input type="number" min={0} step="0.5" value={it.hours || ''} onChange={(e) => setItemHours(idx, Number(e.target.value))} className="text-right tabular-nums" />
                     </Field>
-                    <Field label="Valor">
+                    <Field label="Valor" hint={hourlyRate ? `Auto: ${money(hourlyRate, currency)}/h` : undefined}>
                       <Input type="number" min={0} step="0.01" value={it.amount || ''} onChange={(e) => setItem(idx, { amount: Number(e.target.value) })} className="text-right tabular-nums" />
                     </Field>
                     <Field label="Descrição (opcional)" className="sm:col-span-3">

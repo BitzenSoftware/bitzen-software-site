@@ -13,6 +13,8 @@ export const emptyClient = {
   state: '',
   zip: '',
   notes: '',
+  currency: 'BRL',
+  hourly_rate: 0,
 }
 
 export function emptyCompanyProfile(userId) {

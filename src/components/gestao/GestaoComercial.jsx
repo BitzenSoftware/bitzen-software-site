@@ -48,7 +48,7 @@ export default function GestaoComercial() {
 
       {tab === 'orcamentos' && (
         <QuotesListView
-          currency={companyProfile?.currency ?? 'BRL'}
+          defaultCurrency={companyProfile?.currency ?? 'BRL'}
           onOpenEditor={(id) => setQuoteView({ mode: 'editor', id })}
           onOpenDocument={(id) => setQuoteView({ mode: 'preview', id })}
         />

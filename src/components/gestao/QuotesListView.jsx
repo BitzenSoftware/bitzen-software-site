@@ -4,7 +4,7 @@ import { duplicateQuote, KIND_LABEL, STATUS_LABEL } from '../../lib/gestao/data'
 import { date, money, quoteCode, totals } from '../../lib/gestao/format'
 import { Badge, Button, Card, Empty, Input, Select, Spinner } from './ui'
 
-export default function QuotesListView({ currency, onOpenEditor, onOpenDocument }) {
+export default function QuotesListView({ defaultCurrency, onOpenEditor, onOpenDocument }) {
   const [rows, setRows] = useState(null)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
@@ -13,7 +13,7 @@ export default function QuotesListView({ currency, onOpenEditor, onOpenDocument 
   async function load() {
     const { data, error } = await supabase
       .from('quotes')
-      .select('*, clients(name), quote_items(hours, amount)')
+      .select('*, clients(name, currency), quote_items(hours, amount)')
       .order('number', { ascending: false })
     if (error) setError(error.message)
     setRows(data ?? [])
@@ -21,9 +21,21 @@ export default function QuotesListView({ currency, onOpenEditor, onOpenDocument 
 
   useEffect(() => { load() }, [])
 
+  // Cada orçamento usa a moeda do cliente ligado a ele; sem cliente, cai
+  // para a moeda padrão da empresa.
+  const withTotals = useMemo(
+    () =>
+      (rows ?? []).map((r) => ({
+        ...r,
+        currency: r.clients?.currency || defaultCurrency,
+        sum: totals(r.quote_items.map((i, idx) => ({ ...i, position: idx, title: '', description: '' })), Number(r.discount)),
+      })),
+    [rows, defaultCurrency],
+  )
+
   const list = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return (rows ?? [])
+    return withTotals
       .filter((r) => !status || r.status === status)
       .filter(
         (r) =>
@@ -32,14 +44,22 @@ export default function QuotesListView({ currency, onOpenEditor, onOpenDocument 
           (r.clients?.name ?? '').toLowerCase().includes(q) ||
           quoteCode(r.kind, r.number, r.issue_date).toLowerCase().includes(q),
       )
-      .map((r) => ({ ...r, sum: totals(r.quote_items.map((i, idx) => ({ ...i, position: idx, title: '', description: '' })), Number(r.discount)) }))
-  }, [rows, search, status])
+  }, [withTotals, search, status])
 
-  const summary = useMemo(() => {
-    const all = (rows ?? []).map((r) => ({ status: r.status, total: totals(r.quote_items.map((i, idx) => ({ ...i, position: idx, title: '', description: '' })), Number(r.discount)).total }))
-    const sumBy = (s) => all.filter((a) => a.status === s).reduce((t, a) => t + a.total, 0)
-    return { open: sumBy('enviado'), approved: sumBy('aprovado'), count: all.length }
-  }, [rows])
+  // Soma por moeda — orçamentos de clientes diferentes podem estar em
+  // moedas diferentes, então não dá para somar tudo num único total.
+  const summaryByCurrency = useMemo(() => {
+    const byCurrency = {}
+    for (const r of withTotals) {
+      const bucket = byCurrency[r.currency] ?? { open: 0, approved: 0 }
+      if (r.status === 'enviado') bucket.open += r.sum.total
+      if (r.status === 'aprovado') bucket.approved += r.sum.total
+      byCurrency[r.currency] = bucket
+    }
+    return byCurrency
+  }, [withTotals])
+
+  const currencies = Object.keys(summaryByCurrency)
 
   async function duplicate(id) {
     try {
@@ -69,15 +89,27 @@ export default function QuotesListView({ currency, onOpenEditor, onOpenDocument 
       <div className="grid gap-3 sm:grid-cols-3">
         <Card className="p-5">
           <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Documentos</p>
-          <p className="mt-2 text-white text-2xl font-semibold">{summary.count}</p>
+          <p className="mt-2 text-white text-2xl font-semibold">{withTotals.length}</p>
         </Card>
         <Card className="p-5">
           <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Em negociação</p>
-          <p className="mt-2 text-white text-2xl font-semibold">{money(summary.open, currency)}</p>
+          {currencies.length === 0 ? (
+            <p className="mt-2 text-white text-2xl font-semibold">{money(0, defaultCurrency)}</p>
+          ) : (
+            currencies.map((c) => (
+              <p key={c} className="mt-2 text-white text-2xl font-semibold">{money(summaryByCurrency[c].open, c)}</p>
+            ))
+          )}
         </Card>
         <Card className="p-5">
           <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Aprovado</p>
-          <p className="mt-2 text-green-400 text-2xl font-semibold">{money(summary.approved, currency)}</p>
+          {currencies.length === 0 ? (
+            <p className="mt-2 text-green-400 text-2xl font-semibold">{money(0, defaultCurrency)}</p>
+          ) : (
+            currencies.map((c) => (
+              <p key={c} className="mt-2 text-green-400 text-2xl font-semibold">{money(summaryByCurrency[c].approved, c)}</p>
+            ))
+          )}
         </Card>
       </div>
 
@@ -94,7 +126,7 @@ export default function QuotesListView({ currency, onOpenEditor, onOpenDocument 
           <Spinner />
         ) : list.length === 0 ? (
           <Empty
-            title={rows.length ? 'Nenhum resultado' : 'Nenhum orçamento ainda'}
+            title={(rows ?? []).length ? 'Nenhum resultado' : 'Nenhum orçamento ainda'}
             text={rows.length ? 'Ajuste a busca ou o filtro.' : 'Crie o primeiro orçamento. Antes, vale preencher o perfil da empresa e cadastrar um cliente.'}
             action={!rows.length && <Button onClick={() => onOpenEditor(null)}>Criar orçamento</Button>}
           />
@@ -127,7 +159,7 @@ export default function QuotesListView({ currency, onOpenEditor, onOpenDocument 
                     </td>
                     <td className="px-4 py-3 text-gray-400">{date(r.issue_date)}</td>
                     <td className="px-4 py-3 text-right tabular-nums text-gray-400">{r.sum.totalHours.toLocaleString('pt-BR')}</td>
-                    <td className="px-4 py-3 text-right font-medium tabular-nums text-white">{money(r.sum.total, currency)}</td>
+                    <td className="px-4 py-3 text-right font-medium tabular-nums text-white">{money(r.sum.total, r.currency)}</td>
                     <td className="px-4 py-3"><Badge status={r.status}>{STATUS_LABEL[r.status]}</Badge></td>
                     <td className="whitespace-nowrap px-4 py-3 text-right">
                       <Button size="sm" variant="ghost" onClick={() => onOpenDocument(r.id)}>Documento</Button>
