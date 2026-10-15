@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { duplicateQuote, KIND_LABEL, STATUS_LABEL } from '../../lib/gestao/data'
 import { date, money, quoteCode, totals } from '../../lib/gestao/format'
-import { Badge, Button, Card, Empty, Input, Select, Spinner } from './ui'
+import { Badge, Button, Card, ConfirmDeleteModal, Empty, Input, Select, Spinner } from './ui'
 
 export default function QuotesListView({ defaultCurrency, onOpenEditor, onOpenDocument }) {
   const [rows, setRows] = useState(null)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const [deleting, setDeleting] = useState(null)
 
   async function load() {
     const { data, error } = await supabase
@@ -70,9 +71,11 @@ export default function QuotesListView({ defaultCurrency, onOpenEditor, onOpenDo
     }
   }
 
-  async function remove(r) {
-    if (!window.confirm(`Excluir ${quoteCode(r.kind, r.number, r.issue_date)}? Esta ação não pode ser desfeita.`)) return
+  async function confirmRemove() {
+    const r = deleting
+    if (!r) return
     const { error } = await supabase.from('quotes').delete().eq('id', r.id)
+    setDeleting(null)
     if (error) return setError(error.message)
     load()
   }
@@ -165,7 +168,7 @@ export default function QuotesListView({ defaultCurrency, onOpenEditor, onOpenDo
                       <Button size="sm" variant="ghost" onClick={() => onOpenDocument(r.id)}>Documento</Button>
                       <Button size="sm" variant="ghost" onClick={() => onOpenEditor(r.id)}>Editar</Button>
                       <Button size="sm" variant="ghost" onClick={() => duplicate(r.id)}>Duplicar</Button>
-                      <Button size="sm" variant="danger" onClick={() => remove(r)}>Excluir</Button>
+                      <Button size="sm" variant="danger" onClick={() => setDeleting(r)}>Excluir</Button>
                     </td>
                   </tr>
                 ))}
@@ -174,6 +177,16 @@ export default function QuotesListView({ defaultCurrency, onOpenEditor, onOpenDo
           </div>
         )}
       </Card>
+
+      {deleting && (
+        <ConfirmDeleteModal
+          title="Excluir orçamento"
+          description="Esta ação não pode ser desfeita."
+          confirmText={quoteCode(deleting.kind, deleting.number, deleting.issue_date)}
+          onConfirm={confirmRemove}
+          onCancel={() => setDeleting(null)}
+        />
+      )}
     </div>
   )
 }

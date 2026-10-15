@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 const cx = (...c) => c.filter(Boolean).join(' ')
 
 export function Button({ variant = 'primary', size = 'md', className, ...p }) {
@@ -96,6 +98,36 @@ export function Tabs({ items, value, onChange }) {
           {item.label}
         </button>
       ))}
+    </div>
+  )
+}
+
+/** Modal de exclusão que só libera o botão quando o texto digitado bate com `confirmText`. */
+export function ConfirmDeleteModal({ title, description, confirmText, onConfirm, onCancel }) {
+  const [typed, setTyped] = useState('')
+  const match = typed.trim() === confirmText
+
+  return (
+    <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative w-full max-w-sm bg-surface border border-border rounded-2xl shadow-2xl p-6">
+        <h3 className="text-white text-base font-semibold mb-1">{title}</h3>
+        {description && <p className="text-gray-500 text-sm mb-4">{description}</p>}
+        <p className="text-gray-400 text-xs mb-1.5">
+          Para confirmar, digite <span className="font-mono text-white">{confirmText}</span>
+        </p>
+        <Input
+          autoFocus
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && match) onConfirm() }}
+          placeholder={confirmText}
+        />
+        <div className="flex gap-2 pt-4">
+          <Button variant="secondary" onClick={onCancel} className="flex-1">Cancelar</Button>
+          <Button variant="danger" onClick={onConfirm} disabled={!match} className="flex-1 bg-red-500/10 hover:bg-red-500/20">Excluir</Button>
+        </div>
+      </div>
     </div>
   )
 }
